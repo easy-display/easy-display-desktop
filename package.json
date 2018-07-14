@@ -1,6 +1,6 @@
 {
-  "name": "electron-quick-start-typescript",
-  "version": "1.0.0",
+  "name": "easy-display-desktop",
+  "version": "0.1.0",
   "description": "A minimal Electron application written with Typescript",
   "scripts": {
     "build": "tsc",
@@ -17,11 +17,11 @@
     "demo",
     "typescript"
   ],
-  "author": "GitHub",
+  "author": "Mohammed O. Tillawy",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "^2.0.2",
+    "electron": "^3.0.0-beta.2",
     "tslint": "^5.10.0",
-    "typescript": "^2.8.3"
+    "typescript": "^2.9.2"
   }
 }
