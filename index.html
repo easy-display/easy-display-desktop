@@ -2,18 +2,32 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Hello World!</title>
+    <title>Easy Display</title>
   </head>
   <body>
-    <h1>Hello World!</h1>
+    <h1>Easy Display</h1>
     <!-- All of the Node.js APIs are available in this renderer process. -->
     We are using Node.js <script>document.write(process.versions.node)</script>,
     Chromium <script>document.write(process.versions.chrome)</script>,
     and Electron <script>document.write(process.versions.electron)</script>
+    <a href="javascript:void(0)" onclick="doit();">Process</a>
+    <br/>
+    <br/>
+    <a href="javascript:void(0)" onclick="sendMessage();">Send Message</a>
   </body>
 
   <script>
     // You can also require other files to run in this process
-    require('./dist/renderer.js')
+
+
+    const renderer = require('./dist/renderer.js');
+    const doit = () => {
+        renderer.doit();
+        renderer.connectSocket();
+    };
+    const sendMessage = () => {
+        renderer.sendMessage();
+    };
+
   </script>
 </html>

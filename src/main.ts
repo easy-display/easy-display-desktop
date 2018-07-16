@@ -1,5 +1,7 @@
 import { app, BrowserWindow } from "electron";
+import * as os from "os";
 import * as path from "path";
+
 
 let mainWindow: Electron.BrowserWindow;
 
@@ -25,6 +27,7 @@ function createWindow() {
   });
 }
 
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -34,7 +37,8 @@ app.on("ready", createWindow);
 app.on("window-all-closed", () => {
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== "darwin") {
+
+  if (os.platform() !== "darwin") {
     app.quit();
   }
 });
@@ -44,6 +48,7 @@ app.on("activate", () => {
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
     createWindow();
+
   }
 });
 
