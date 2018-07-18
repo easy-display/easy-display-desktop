@@ -13,13 +13,21 @@ let socket: Socket;
 module.exports = {
     connectSocket: () => {
         console.log("connectSocket");
-        socket = io("http://localhost:8999");
-        socket.on("connection",  (s: Socket) => {
-            console.log("connected ...");
-            s.emit("event_to_client", { hello: "world" });
-            s.on("event_to_server", (data: any) => {
-                console.log(data);
-                s.emit("event_to_client", { hello: "world" });
+        const userId = 99;
+        const token = "Az_678987";
+        const host = "localhost:8999";
+        const protocol = "http";
+        socket = io(`${protocol}://${host}/desktop/0.1?client_type=desktop&user_id=${userId}&token=${token}`);
+        socket.on("connection", (s: Socket) => {
+            console.log("connection to server SUCCESS.");
+            // s.emit("event_to_client", { hello: "world" });
+            s.on("event_server_to_desktop", (data: any) => {
+                console.log(`event_server_to_desktop: ${data}`);
+                // s.emit("event_to_client", { hello: "world" });
+            });
+            s.on("event_mobile_to_desktop", (data: any) => {
+                console.log(`event_mobile_to_desktop: ${data}`);
+                // s.emit("event_to_client", { hello: "world" });
             });
         });
     },
@@ -27,6 +35,6 @@ module.exports = {
         console.log("process ");
     },
     sendMessage: () => {
-        socket.emit("event_to_server", { hello: "world" });
+        socket.emit("event_desktop_to_mobile", { hello: "world" });
     },
 };
