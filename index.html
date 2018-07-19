@@ -6,14 +6,24 @@
   </head>
   <body>
     <h1>Easy Display</h1>
-    <!-- All of the Node.js APIs are available in this renderer process. -->
-    We are using Node.js <script>document.write(process.versions.node)</script>,
-    Chromium <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>
-    <a href="javascript:void(0)" onclick="doit();">Process</a>
+
     <br/>
+    <form>
+      <label for="url_input">URL:</label>
+      <input type="text" id="url_input" name="url_name" value="https://www.google.com/" size="80"/>
+      <a href="javascript:void(0)" onclick="openUrl();">Open URL</a>
+    </form>
+    <a href="javascript:void(0)" onclick="doit();">Connect</a>
     <br/>
     <a href="javascript:void(0)" onclick="sendMessage();">Send Message</a>
+    <br/>
+
+    <div id="about">
+      Node.js <script>document.write(process.versions.node)</script>,
+      Chromium <script>document.write(process.versions.chrome)</script>,
+      Electron <script>document.write(process.versions.electron)</script>
+    </div>
+
   </body>
 
   <script>
@@ -22,11 +32,18 @@
 
     const renderer = require('./dist/renderer.js');
     const doit = () => {
-        renderer.doit();
+        // renderer.doit();
         renderer.connectSocket();
+
     };
+
     const sendMessage = () => {
         renderer.sendMessage();
+    };
+
+    const openUrl = () => {
+      const url = document.getElementById("url_input").value;
+      renderer.openUrl(url);
     };
 
   </script>

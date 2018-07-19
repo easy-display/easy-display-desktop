@@ -12,29 +12,39 @@ let socket: Socket;
 
 module.exports = {
     connectSocket: () => {
-        console.log("connectSocket");
+        console.log("connectSocket ...");
         const userId = 99;
         const token = "Az_678987";
         const host = "localhost:8999";
         const protocol = "http";
-        socket = io(`${protocol}://${host}/desktop/0.1?client_type=desktop&user_id=${userId}&token=${token}`);
-        socket.on("connection", (s: Socket) => {
-            console.log("connection to server SUCCESS.");
+        const uri = `${protocol}://${host}/desktop/0.1?client_type=desktop&user_id=${userId}&token=${token}`;
+        socket = io.connect(uri);
+        socket.on("connect", () => {
+            console.log(`connect to server: ${uri} SUCCESS, socket.connected: ${socket.connected}`);
             // s.emit("event_to_client", { hello: "world" });
-            s.on("event_server_to_desktop", (data: any) => {
+            socket.on("event_server_to_desktop", (data: any) => {
                 console.log(`event_server_to_desktop: ${data}`);
                 // s.emit("event_to_client", { hello: "world" });
             });
-            s.on("event_mobile_to_desktop", (data: any) => {
+            socket.on("event_mobile_to_desktop", (data: any) => {
                 console.log(`event_mobile_to_desktop: ${data}`);
                 // s.emit("event_to_client", { hello: "world" });
             });
         });
     },
     doit: () => {
-        console.log("process ");
+        console.log("doit ");
+    },
+    openUrl: (url: string) => {
+        console.log(`openUrl: ${url}`);
+        const msgs = [{
+                    data: url ,
+                    name: "open_url",
+                }];
+        socket.emit("event_desktop_to_mobile", { messages: msgs } );
     },
     sendMessage: () => {
         socket.emit("event_desktop_to_mobile", { hello: "world" });
     },
+
 };
