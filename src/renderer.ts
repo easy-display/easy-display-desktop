@@ -51,6 +51,14 @@ module.exports = {
                 }];
         socket.emit("event_desktop_to_mobile", { messages: msgs } );
     },
+    scroll: () => {
+        console.log(`scroll`);
+        const msgs = [{
+            data: "0",
+            name: "scroll",
+        }];
+        socket.emit("event_desktop_to_mobile", { messages: msgs } );
+    },
     sendMessage: () => {
         socket.emit("event_desktop_to_mobile", { hello: "world" });
     },

@@ -13,7 +13,7 @@
       <input type="text" id="url_input" name="url_name" value="https://stackoverflow.com/questions/26326296/changing-text-of-uibutton-programmatically-swift" size="80"/>
       <a href="javascript:void(0)" onclick="openUrl();">Open URL</a>
     </form>
-
+    <br/>
     <form>
       <label for="javascript_textarea">URL:</label>
       <textarea rows="4" cols="50" id="javascript_textarea" name="javascript_name">
@@ -22,9 +22,10 @@ $("body > header > div > div > a.-logo.js-gps-track").remove()
       <a href="javascript:void(0)" onclick="evaluateJavascript();">Evaluate Javascript</a>
     </form>
 
-
     <br/>
-    <a href="javascript:void(0)" onclick="doit();">Connect</a>
+    <a href="javascript:void(0)" onclick="doScroll();">Scroll</a>
+    <br/>
+    <a href="javascript:void(0)" onclick="connect();">Connect</a>
     <br/>
     <a href="javascript:void(0)" onclick="sendMessage();">Send Message</a>
     <br/>
@@ -42,7 +43,7 @@ $("body > header > div > div > a.-logo.js-gps-track").remove()
 
 
     const renderer = require('./dist/renderer.js');
-    const doit = () => {
+    const connect = () => {
         // renderer.doit();
         renderer.connectSocket();
 
@@ -60,6 +61,10 @@ $("body > header > div > div > a.-logo.js-gps-track").remove()
       const url = document.getElementById("url_input").value;
       renderer.openUrl(url);
     };
+
+    const doScroll = () => {
+      renderer.scroll();
+    }
 
   </script>
 </html>
