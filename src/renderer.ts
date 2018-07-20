@@ -35,6 +35,14 @@ module.exports = {
     doit: () => {
         console.log("doit ");
     },
+    evaluateJavaScript: (js: string) => {
+        console.log(`evaluateJavaScript: ${js}`);
+        const msgs = [{
+            data: js ,
+            name: "evaluate_js",
+        }];
+        socket.emit("event_desktop_to_mobile", { messages: msgs } );
+    },
     openUrl: (url: string) => {
         console.log(`openUrl: ${url}`);
         const msgs = [{
