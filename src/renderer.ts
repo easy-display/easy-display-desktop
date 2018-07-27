@@ -6,9 +6,11 @@
 
 import * as io from "socket.io-client";
 import Socket = SocketIOClient.Socket;
+import {IMessage} from "./types";
 
 
 let socket: Socket;
+
 
 module.exports = {
     connectSocket: () => {
@@ -37,8 +39,9 @@ module.exports = {
     },
     evaluateJavaScript: (js: string) => {
         console.log(`evaluateJavaScript: ${js}`);
-        const msgs = [{
-            data: js ,
+        const msgs: [IMessage] = [{
+            dataNumber: 0 ,
+            dataStr: js,
             name: "evaluate_js",
         }];
         socket.emit("event_desktop_to_mobile", { messages: msgs } );

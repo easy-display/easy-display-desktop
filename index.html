@@ -1,8 +1,12 @@
 <!DOCTYPE html>
+<!-- https://github.com/shaack/electron-bootstrap-starter/blob/master/index.html -->
 <html>
   <head>
     <meta charset="UTF-8">
     <title>Easy Display</title>
+    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="./node_modules/@fortawesome/fontawesome-free/css/all.css"/>
+    <link rel="stylesheet" href="./assets/style/style.css"/>
   </head>
   <body>
     <h1>Easy Display</h1>
@@ -23,8 +27,19 @@ $("body > header > div > div > a.-logo.js-gps-track").remove()
     </form>
 
     <br/>
-    <a href="javascript:void(0)" onclick="doScroll();">Scroll</a>
-    <br/>
+    <div class="arrows-container">
+        <div class="arrows-container-line">
+            <a class="fa fa-arrow-alt-circle-up" href="javascript:void(0)" onclick="doScroll();"></a>
+        </div>
+        <div class="arrows-container-line">
+            <a class="fa fa-arrow-alt-circle-left" href="javascript:void(0)" onclick="doScroll();"></a>
+            <a class="fa fa-arrow-alt-circle-right" href="javascript:void(0)" onclick="doScroll();"></a>
+        </div>
+        <div class="arrows-container-line">
+            <a class="fa fa-arrow-alt-circle-down" href="javascript:void(0)" onclick="doScroll();"></a>
+        </div>
+    </div>
+
     <a href="javascript:void(0)" onclick="connect();">Connect</a>
     <br/>
     <a href="javascript:void(0)" onclick="sendMessage();">Send Message</a>
@@ -37,6 +52,11 @@ $("body > header > div > div > a.-logo.js-gps-track").remove()
     </div>
 
   </body>
+
+  <script>
+      window.jQuery = window.$ = require('jquery');
+  </script>
+  <script src="./node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
 
   <script>
     // You can also require other files to run in this process

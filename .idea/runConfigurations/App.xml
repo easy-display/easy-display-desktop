@@ -1,0 +1,5 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="App" type="NodeJSConfigurationType" factoryName="Node.js" path-to-node="$PROJECT_DIR$/node_modules/.bin/electron" node-parameters="--remote-debugging-port=9229" path-to-js-file="dist/main.js" working-dir="$PROJECT_DIR$/">
+    <method v="2" />
+  </configuration>
+</component>

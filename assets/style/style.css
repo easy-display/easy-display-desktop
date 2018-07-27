@@ -1,0 +1,15 @@
+h1 {
+    color: red;
+}
+
+.arrows-container {
+    width: 100%;
+    display: grid;
+    grid-template-rows: auto auto auto;
+    grid-template-columns: 100%;
+    grid-auto-flow: column;
+}
+
+.arrows-container-line {
+    display: flex;
+}
