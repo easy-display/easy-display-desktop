@@ -10,7 +10,7 @@
   </head>
   <body>
     <h1>Easy Display</h1>
-
+    <div id="qrcode"></div>
     <br/>
     <form>
       <label for="url_input">URL:</label>
@@ -45,6 +45,8 @@ $("body > header > div > div > a.-logo.js-gps-track").remove()
     <a href="javascript:void(0)" onclick="sendMessage();">Send Message</a>
     <br/>
 
+
+
     <div id="about">
       Node.js <script>document.write(process.versions.node)</script>,
       Chromium <script>document.write(process.versions.chrome)</script>,
@@ -57,17 +59,16 @@ $("body > header > div > div > a.-logo.js-gps-track").remove()
       window.jQuery = window.$ = require('jquery');
   </script>
   <script src="./node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
+  <script src="./node_modules/qrcode-generator/qrcode.js"></script>
 
   <script>
     // You can also require other files to run in this process
 
 
-    const renderer = require('./dist/renderer.js');
-    const connect = () => {
-        // renderer.doit();
-        renderer.connectSocket();
 
-    };
+    const renderer = require('./dist/renderer.js');
+
+    renderer.createNewConnection();
 
     const evaluateJavascript = () => {
         const js = document.getElementById("javascript_textarea").value;
@@ -84,7 +85,16 @@ $("body > header > div > div > a.-logo.js-gps-track").remove()
 
     const doScroll = () => {
       renderer.scroll();
-    }
+    };
+
+
+    var typeNumber = 4;
+    var errorCorrectionLevel = 'L';
+    var qr = qrcode(typeNumber, errorCorrectionLevel);
+    qr.addData('Hi!');
+    qr.make();
+
+    $('#qrcode').html(qr.createImgTag());
 
   </script>
 </html>

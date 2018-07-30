@@ -54,4 +54,7 @@ npm run watch
 
 
 
-https://github.com/shaack/electron-bootstrap-starter/blob/master/index.html
+
+https://github.com/shaack/electron-bootstrap-starter
+
+https://github.com/sourcechord/electron-gridlayout-sample

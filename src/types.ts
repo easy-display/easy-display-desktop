@@ -1,6 +1,6 @@
 
 export interface IMessage {
     name: string;
-    dataStr: string;
+    dataString: string;
     dataNumber: number;
 }

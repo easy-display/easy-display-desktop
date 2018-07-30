@@ -8,44 +8,69 @@ import * as io from "socket.io-client";
 import Socket = SocketIOClient.Socket;
 import {IMessage} from "./types";
 
+import axios, {AxiosResponse} from "axios";
+
+const isDevel = (): boolean => {
+    return process.env.NODE_ENV === "development";
+};
+
+
+const connectionUrl = (): string => {
+    if (isDevel()) {
+        return  "http://localhost:8999/api/v1/connection";
+    } else {
+        return  "https://.....:443/";
+    }
+};
+
 
 let socket: Socket;
 
 
-module.exports = {
-    connectSocket: () => {
-        console.log("connectSocket ...");
-        const userId = 99;
-        const token = "Az_678987";
-        const host = "localhost:8999";
-        const protocol = "http";
-        const uri = `${protocol}://${host}/desktop/0.1?client_type=desktop&user_id=${userId}&token=${token}`;
-        socket = io.connect(uri);
-        socket.on("connect", () => {
-            console.log(`connect to server: ${uri} SUCCESS, socket.connected: ${socket.connected}`);
+const connectSocket = (protocol: string, host: string, token: string ): void => {
+    console.log("connectSocket ...");
+    // const token = "Az_678987";
+    // const host = "localhost:8999";
+    // const protocol = "http";
+    const uri = `${protocol}://${host}/desktop/0.1?client_type=desktop&token=${token}`;
+    socket = io.connect(uri);
+    socket.on("connect", () => {
+        console.log(`connect to server: ${uri} SUCCESS, socket.connected: ${socket.connected}`);
+        // s.emit("event_to_client", { hello: "world" });
+        socket.on("event_server_to_desktop", (data: any) => {
+            console.log(`event_server_to_desktop: ${data}`);
             // s.emit("event_to_client", { hello: "world" });
-            socket.on("event_server_to_desktop", (data: any) => {
-                console.log(`event_server_to_desktop: ${data}`);
-                // s.emit("event_to_client", { hello: "world" });
-            });
-            socket.on("event_mobile_to_desktop", (data: any) => {
-                console.log(`event_mobile_to_desktop: ${data}`);
-                // s.emit("event_to_client", { hello: "world" });
-            });
+        });
+        socket.on("event_mobile_to_desktop", (data: any) => {
+            console.log(`event_mobile_to_desktop: ${data}`);
+            // s.emit("event_to_client", { hello: "world" });
+        });
+    });
+};
+
+module.exports = {
+
+    createNewConnection: () => {
+        axios.post(connectionUrl()).then((response: AxiosResponse) => {
+            console.log(response.data);
+            connectSocket(response.data.protocol, response.data.host, response.data.token);
         });
     },
+
     doit: () => {
         console.log("doit ");
     },
+
     evaluateJavaScript: (js: string) => {
         console.log(`evaluateJavaScript: ${js}`);
         const msgs: [IMessage] = [{
             dataNumber: 0 ,
-            dataStr: js,
+            dataString: js,
             name: "evaluate_js",
         }];
         socket.emit("event_desktop_to_mobile", { messages: msgs } );
     },
+
     openUrl: (url: string) => {
         console.log(`openUrl: ${url}`);
         const msgs = [{
