@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scan</title>
+</head>
+<body class="container-fluid">
+
+<h1>Scan with your iPad</h1>
+<div style="width: 100%; text-align: center" id="qrcode"></div>
+
+<script src="../node_modules/qrcode-generator/qrcode.js"></script>
+
+
+<script>
+    window.jQuery = window.$ = require('jquery');
+</script>
+
+<script>
+    console.log(global.location.search);
+    const queryString = require('query-string');
+    const parsed = queryString.parse(global.location.search);
+    console.log(parsed);
+
+    const typeNumber = 4;
+    const errorCorrectionLevel = 'L';
+    const qr = qrcode(typeNumber, errorCorrectionLevel);
+    qr.addData('Hi!');
+    qr.make();
+
+    $('#qrcode').html(qr.createImgTag());
+
+</script>
+</body>
+</html>

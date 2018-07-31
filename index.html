@@ -10,7 +10,7 @@
   </head>
   <body>
     <h1>Easy Display</h1>
-    <div id="qrcode"></div>
+
     <br/>
     <form>
       <label for="url_input">URL:</label>
@@ -59,12 +59,10 @@ $("body > header > div > div > a.-logo.js-gps-track").remove()
       window.jQuery = window.$ = require('jquery');
   </script>
   <script src="./node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
-  <script src="./node_modules/qrcode-generator/qrcode.js"></script>
+
 
   <script>
     // You can also require other files to run in this process
-
-
 
     const renderer = require('./dist/renderer.js');
 
@@ -87,14 +85,6 @@ $("body > header > div > div > a.-logo.js-gps-track").remove()
       renderer.scroll();
     };
 
-
-    var typeNumber = 4;
-    var errorCorrectionLevel = 'L';
-    var qr = qrcode(typeNumber, errorCorrectionLevel);
-    qr.addData('Hi!');
-    qr.make();
-
-    $('#qrcode').html(qr.createImgTag());
 
   </script>
 </html>

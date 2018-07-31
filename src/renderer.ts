@@ -9,11 +9,26 @@ import Socket = SocketIOClient.Socket;
 import {IMessage} from "./types";
 
 import axios, {AxiosResponse} from "axios";
+import electron = require("electron");
+const BrowserWindow = electron.remote.BrowserWindow;
+import * as path from "path";
 
 const isDevel = (): boolean => {
     return process.env.NODE_ENV === "development";
 };
 
+const openQrCodeDialogue = (proto: string, host: string, token: string ): void => {
+    const modalPath = path.join(`file://${__dirname}/qr.html?protocol=${proto}&host=${host}&token=${token}`);
+    console.log(`modalPath: ${modalPath}`);
+    let win = new BrowserWindow({
+        alwaysOnTop: true,
+        height: 200 ,
+        width: 300,
+    });
+    win.on("close", () => { win = null; });
+    win.loadURL(modalPath);
+    win.show();
+};
 
 const connectionUrl = (): string => {
     if (isDevel()) {
@@ -23,9 +38,7 @@ const connectionUrl = (): string => {
     }
 };
 
-
 let socket: Socket;
-
 
 const connectSocket = (protocol: string, host: string, token: string ): void => {
     console.log("connectSocket ...");
@@ -36,6 +49,7 @@ const connectSocket = (protocol: string, host: string, token: string ): void => 
     socket = io.connect(uri);
     socket.on("connect", () => {
         console.log(`connect to server: ${uri} SUCCESS, socket.connected: ${socket.connected}`);
+        openQrCodeDialogue(protocol, host, token);
         // s.emit("event_to_client", { hello: "world" });
         socket.on("event_server_to_desktop", (data: any) => {
             console.log(`event_server_to_desktop: ${data}`);
