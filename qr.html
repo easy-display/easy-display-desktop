@@ -17,18 +17,19 @@
 </script>
 
 <script>
-    console.log(global.location.search);
     const queryString = require('query-string');
     const parsed = queryString.parse(global.location.search);
-    console.log(parsed);
+    console.log("qr.html: " , global.location.search, parsed);
 
-    const typeNumber = 4;
+    const typeNumber = 0;
     const errorCorrectionLevel = 'L';
     const qr = qrcode(typeNumber, errorCorrectionLevel);
-    qr.addData('Hi!');
+    qr.addData(JSON.stringify(parsed));
     qr.make();
+    const cellSize = 5;
+    const margin = 10;
 
-    $('#qrcode').html(qr.createImgTag());
+    $('#qrcode').html(qr.createImgTag(cellSize, margin));
 
 </script>
 </body>
