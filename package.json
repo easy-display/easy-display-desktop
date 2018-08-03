@@ -6,7 +6,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "lint": "tslint -c tslint.json -p tsconfig.json",
-    "copy-html-files": "rm -f dist/qr.html; cp qr.html ./dist/;",
+    "copy-html-files": "rm -f dist/qr.html; cp src/qr.html ./dist/; rm -rf dist/about.html; cp src/about.html dist/; rm -rf dist/exec-js.html; cp src/exec-js.html dist/;",
     "start": "npm run build && ./node_modules/.bin/electron --inspect-brk=49492 ./dist/main.js"
   },
   "repository": "https://github.com/electron/electron-quick-start-typescript",

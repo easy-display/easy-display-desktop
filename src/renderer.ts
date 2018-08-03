@@ -20,7 +20,8 @@ const isDevel = (): boolean => {
 
 let qrWin: BrowserWindow;
 const openQrCodeDialogue = (scheme: string, host: string , version: string, token: string ): void => {
-    const modalPath = path.join(`file://${__dirname}/qr.html?scheme=${scheme}&version=${version}&host=${host}&token=${token}`);
+    const params = `scheme=${scheme}&version=${version}&host=${host}&token=${token}`;
+    const modalPath = path.join(`file://${__dirname}/qr.html?${params}`);
     console.log(`modalPath: ${modalPath}`);
     qrWin = new ElectronBrowserWindow({
         alwaysOnTop: true,
@@ -31,6 +32,31 @@ const openQrCodeDialogue = (scheme: string, host: string , version: string, toke
     qrWin.loadURL(modalPath);
     qrWin.show();
 };
+
+const openExecJsDialogue = () => {
+    const execPath = path.join(`file://${__dirname}/exec-js.html`);
+    let execWin = new ElectronBrowserWindow({
+        alwaysOnTop: true,
+        height: 300 ,
+        width: 500,
+    });
+    execWin.on("close", () => { execWin = null; });
+    execWin.loadURL(execPath);
+    execWin.show();
+};
+
+const openAboutDialogue = () => {
+    const aboutPath = path.join(`file://${__dirname}/about.html`);
+    let aboutWin = new ElectronBrowserWindow({
+        alwaysOnTop: true,
+        height: 300 ,
+        width: 300,
+    });
+    aboutWin.on("close", () => { aboutWin = null; });
+    aboutWin.loadURL(aboutPath);
+    aboutWin.show();
+};
+
 
 const connectionUrl = (): string => {
     if (isDevel()) {
@@ -65,11 +91,24 @@ const connectSocket = (scheme: string, host: string, version: string , token: st
     });
 };
 
+const appVersion = (): string => {
+    const pjson = require("../package.json");
+    return pjson.version;
+};
+
+
 module.exports = {
 
+    about: () => {
+        openAboutDialogue();
+    },
+
+    appVersion: () => {
+        return appVersion();
+    },
+
     createNewConnection: () => {
-        const pjson = require("../package.json");
-        axios.post(connectionUrl(), { version: pjson.version }).then((response: AxiosResponse) => {
+        axios.post(connectionUrl(), { version: appVersion() }).then((response: AxiosResponse) => {
             console.log(response.data);
             connectSocket(response.data.scheme, response.data.host, response.data.version , response.data.token);
         });
@@ -77,6 +116,10 @@ module.exports = {
 
     doit: () => {
         console.log("doit ");
+    },
+
+    openExecJs: () => {
+        openExecJsDialogue();
     },
 
     evaluateJavaScript: (js: string) => {
@@ -98,10 +141,19 @@ module.exports = {
         }];
         socket.emit("event_desktop_to_mobile", { messages: msgs } );
     },
-    scroll: () => {
-        console.log(`scroll`);
+    reload: () => {
         const msgs = [{
             dataNumber: 0,
+            dataString: "",
+            name: "reload",
+        }];
+        socket.emit("event_desktop_to_mobile", { messages: msgs });
+    },
+
+    scroll: (degree: number) => {
+        console.log(`scroll: ${degree}`);
+        const msgs = [{
+            dataNumber: degree,
             dataString: "" ,
             name: "scroll",
         }];
@@ -110,5 +162,6 @@ module.exports = {
     sendMessage: () => {
         socket.emit("event_desktop_to_mobile", { hello: "world" });
     },
+
 
 };

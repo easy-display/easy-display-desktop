@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Exec</title>
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/all.css"/>
+    <link rel="stylesheet" href="../assets/style/style.css"/>
+</head>
+
+<body class="container">
+
+<div class="mt-2">
+    <form>
+        <div class="form-group">
+            <label for="javascript_textarea">JS:</label>
+            <textarea class="form-control"  rows="4" cols="50" id="javascript_textarea" name="javascript_name">
+var s = document.getElementsByClassName('topbar-icon');
+s[0].remove();
+            </textarea>
+        </div>
+    </form>
+    <button onclick="evaluateJavascript()" type="submit" class="btn btn-primary btn-block">Evaluate Javascript</button>
+</div>
+
+<script>window.$ = window.jQuery = require('jquery');</script>
+
+<script>
+    const renderer = require('./renderer.js');
+
+    const evaluateJavascript = () => {
+        const js = document.getElementById("javascript_textarea").value;
+        renderer.evaluateJavaScript(js);
+    };
+
+</script>
+
+</body>
+</html>
