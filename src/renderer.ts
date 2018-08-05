@@ -2,25 +2,121 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-
-
-import * as io from "socket.io-client";
-import Socket = SocketIOClient.Socket;
-import {IMessage} from "./types";
+import {IConnection, IConnectionStatus, IMessage} from "./types";
 
 import axios, {AxiosResponse} from "axios";
 import electron = require("electron");
-const ElectronBrowserWindow = electron.remote.BrowserWindow;
+import {Promise} from "es6-promise";
 import * as path from "path";
-import BrowserWindow = Electron.BrowserWindow;
+import {Subject} from "rxjs";
+import BrowserWindow = electron.BrowserWindow;
+
+
+let appConnection: IConnection;
+import ipcRenderer = electron.ipcRenderer;
+const connectSocket = (conn: IConnection): void => {
+    appConnection = conn;
+    ipcRenderer.send("socket-connect-request", conn);
+};
+
+ipcRenderer.on("socket-status", (event: Electron.Event, connectionStatus: IConnectionStatus) => {
+    console.log(`"socket-status: ${connectionStatus}`);
+    myObservable.next(connectionStatus);
+});
+
+
+const ElectronBrowserWindow = electron.remote.BrowserWindow;
+
 
 const isDevel = (): boolean => {
     return process.env.NODE_ENV === "development";
 };
 
+
+const delay = (ms: number) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+const myObservable = new Subject();
+const alertInfoToDiv = ((div: HTMLElement) => {
+
+    const resetClasses = (() => {
+        const allClasses: string[] = ["alert-primary", "alert-secondary", "alert-success", "alert-danger",
+        "alert-warning", "alert-info", "alert-light", "alert-dark"];
+        allClasses.forEach((c) => {
+            div.classList.remove(c);
+        });
+    });
+
+    const clearAllInfosClasses = (() => {
+        delay(3000).then(() => {
+            resetClasses();
+            div.innerText = "";
+        });
+    });
+
+    myObservable.subscribe((value: IConnectionStatus) => {
+        console.log(`myObservable: ${value}`);
+        resetClasses();
+        switch (value) {
+            case IConnectionStatus.Connected:
+                div.innerText = "Connected";
+                div.classList.add("alert-primary");
+                openQrCodeDialogue(appConnection);
+
+                break;
+            case IConnectionStatus.Disconnected:
+                div.innerText = "Disconnected ! Trying to reconnect ...";
+                div.classList.add("alert-danger");
+                break;
+            case IConnectionStatus.Connecting:
+                div.innerText = "Connecting ...";
+                div.classList.add("alert-info");
+                break;
+            case IConnectionStatus.Starting:
+                div.innerText = "Welcome, warming up";
+                div.classList.add("alert-light");
+                break;
+            case IConnectionStatus.Reconnecting:
+                div.innerText = "Reconnecting ...";
+                div.classList.add("alert-info");
+                break;
+            case IConnectionStatus.Reconnected:
+                div.innerText = "Reconnected";
+                div.classList.add("alert-secondary");
+                break;
+            case IConnectionStatus.PairingInProgress:
+                div.innerText = "Awaiting iPad ...";
+                div.classList.add("alert-info");
+                break;
+            case IConnectionStatus.PairingSuccess:
+                div.innerText = "Ready to use";
+                div.classList.add("alert-success");
+                clearAllInfosClasses();
+                qrWin.close();
+                break;
+            case IConnectionStatus.Failed:
+                div.innerText = "Connected Failed, please check your internet, reconnecting in a few ...";
+                div.classList.add("alert-danger");
+                break;
+        }
+    });
+});
+
+myObservable.next(IConnectionStatus.Starting);
+
+/*
+ipcRenderer.on("message", (event: Electron.Event, arg: string) => {
+    console.log("ipcRenderer.on message ....."); // prints "ping"
+    console.log(arg); // prints "ping"
+    event.returnValue = "pong";
+});
+*/
+
+
 let qrWin: BrowserWindow;
-const openQrCodeDialogue = (scheme: string, host: string , version: string, token: string ): void => {
-    const params = `scheme=${scheme}&version=${version}&host=${host}&token=${token}`;
+const openQrCodeDialogue = (conn: IConnection): void => {
+    const params = `scheme=${conn.scheme}&version=${conn.version}&host=${conn.host}&token=${conn.token}`;
     const modalPath = path.join(`file://${__dirname}/qr.html?${params}`);
     console.log(`modalPath: ${modalPath}`);
     qrWin = new ElectronBrowserWindow({
@@ -31,6 +127,7 @@ const openQrCodeDialogue = (scheme: string, host: string , version: string, toke
     qrWin.on("close", () => { qrWin = null; });
     qrWin.loadURL(modalPath);
     qrWin.show();
+    myObservable.next(IConnectionStatus.PairingInProgress);
 };
 
 const openExecJsDialogue = () => {
@@ -57,6 +154,22 @@ const openAboutDialogue = () => {
     aboutWin.show();
 };
 
+const initializeConnection = () => {
+    myObservable.next(IConnectionStatus.Connecting);
+    delay(1000).then(() => {
+        axios.post(connectionUrl(), { version: appVersion() })
+            .then((response: AxiosResponse<IConnection>) => {
+                connectSocket(response.data);
+            }).catch((reason) => {
+                console.log(reason);
+                myObservable.next(IConnectionStatus.Failed);
+                delay(3000).then(() => {
+                    myObservable.next(IConnectionStatus.Reconnecting);
+                    initializeConnection();
+                });
+            });
+    });
+};
 
 const connectionUrl = (): string => {
     if (isDevel()) {
@@ -65,16 +178,40 @@ const connectionUrl = (): string => {
         return  "https://.....:443/";
     }
 };
+/*
+class SocketManager {
 
+    public static socket: Socket;
+    private static createSocket(c: IConnection): void {
+        if (SocketManager.socket) {
+            return;
+        }
+        const uri = `${c.scheme}://${c.host}/desktop/${c.version}?client_type=desktop&token=${c.token}`;
+        SocketManager.socket = io.connect(uri);
+    }
+
+    private readonly connection: IConnection;
+    constructor(conn: IConnection) {
+        this.connection = conn;
+        SocketManager.createSocket(this.connection);
+    }
+
+}
+*/
+
+/*
 let socket: Socket;
 
-const connectSocket = (scheme: string, host: string, version: string , token: string ): void => {
+const connectSocket = (conn: IConnection): void => {
     console.log("connectSocket ...");
-    const uri = `${scheme}://${host}/desktop/${version}?client_type=desktop&token=${token}`;
-    socket = io.connect(uri);
+
+    const mgr = new SocketManager(conn);
+    socket = SocketManager.socket;
     socket.on("connect", () => {
-        console.log(`connect to server: ${uri} SUCCESS, socket.connected: ${socket.connected}`);
-        openQrCodeDialogue(scheme, host , version, token);
+        myObservable.next(IConnectionStatus.Connected);
+        console.log(`connect to server: SUCCESS, socket.connected: ${socket.connected}`);
+        openQrCodeDialogue(conn);
+        myObservable.next(IConnectionStatus.PairingInProgress);
         // s.emit("event_to_client", { hello: "world" });
         socket.on("event_server_to_desktop", (data: any) => {
             console.log(`event_server_to_desktop: ${data}`);
@@ -83,13 +220,23 @@ const connectSocket = (scheme: string, host: string, version: string , token: st
         socket.on("event_mobile_to_desktop", (data: any) => {
             console.log(`event_mobile_to_desktop: ${data}`);
             if (data.name === "connection_success" ) {
+                myObservable.next(IConnectionStatus.PairingSuccess);
                 console.log("event_mobile_to_desktop > connection_success,  time to dismiss qr code");
                 qrWin.close();
             }
             // s.emit("event_to_client", { hello: "world" });
         });
+        socket.on("reconnect", () => {
+            console.log("reconnect fired!");
+            myObservable.next(IConnectionStatus.Reconnected);
+        });
+        socket.on("disconnect", () => {
+            console.log("disconnect");
+            myObservable.next(IConnectionStatus.Disconnected);
+        });
     });
 };
+*/
 
 const appVersion = (): string => {
     const pjson = require("../package.json");
@@ -98,6 +245,10 @@ const appVersion = (): string => {
 
 
 module.exports = {
+
+    bindHtmlElementToConnectionStatus: (div: HTMLElement) => {
+        alertInfoToDiv(div);
+    },
 
     about: () => {
         openAboutDialogue();
@@ -108,10 +259,7 @@ module.exports = {
     },
 
     createNewConnection: () => {
-        axios.post(connectionUrl(), { version: appVersion() }).then((response: AxiosResponse) => {
-            console.log(response.data);
-            connectSocket(response.data.scheme, response.data.host, response.data.version , response.data.token);
-        });
+        initializeConnection();
     },
 
     doit: () => {
@@ -122,46 +270,44 @@ module.exports = {
         openExecJsDialogue();
     },
 
-    evaluateJavaScript: (js: string) => {
+    /*evaluateJavaScript: (js: string) => {
         console.log(`evaluateJavaScript: ${js}`);
         const msgs: [IMessage] = [{
             dataNumber: 0 ,
             dataString: js,
             name: "evaluate_js",
         }];
-        socket.emit("event_desktop_to_mobile", { messages: msgs } );
-    },
+        // SocketManager.socket.emit("event_desktop_to_mobile", { messages: msgs } );
+    },*/
 
     openUrl: (url: string) => {
         console.log(`openUrl: ${url}`);
-        const msgs = [{
+        const msgs: [IMessage] = [{
             dataNumber: 0,
             dataString: url ,
             name: "open_url",
         }];
-        socket.emit("event_desktop_to_mobile", { messages: msgs } );
+        ipcRenderer.sendSync("event_desktop_to_mobile", msgs);
     },
     reload: () => {
-        const msgs = [{
+        const msgs: [IMessage]  = [{
             dataNumber: 0,
             dataString: "",
             name: "reload",
         }];
-        socket.emit("event_desktop_to_mobile", { messages: msgs });
+        ipcRenderer.sendSync("event_desktop_to_mobile", msgs);
     },
 
     scroll: (degree: number) => {
         console.log(`scroll: ${degree}`);
-        const msgs = [{
+        const msgs: [IMessage]  = [{
             dataNumber: degree,
             dataString: "" ,
             name: "scroll",
         }];
-        socket.emit("event_desktop_to_mobile", { messages: msgs } );
-    },
-    sendMessage: () => {
-        socket.emit("event_desktop_to_mobile", { hello: "world" });
-    },
+        // SocketManager.socket.emit("event_desktop_to_mobile", { messages: msgs } );
+        ipcRenderer.sendSync("event_desktop_to_mobile", msgs);
+    }
 
 
 };

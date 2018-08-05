@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Scan</title>
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/all.css"/>
+    <link rel="stylesheet" href="../assets/style/style.css"/>
 </head>
-<body class="container-fluid">
+<body class="container">
 
-<h1>Scan with your iPad</h1>
-<div style="width: 100%; text-align: center" id="qrcode"></div>
+    <h2>
+        Scan with your iPad
+    </h2>
 
-<script src="../node_modules/qrcode-generator/qrcode.js"></script>
+    <div style="width: 100%; text-align: center" id="qrcode"></div>
+
+    <script src="../node_modules/qrcode-generator/qrcode.js"></script>
 
 
 <script>
@@ -30,6 +36,7 @@
     const margin = 10;
 
     $('#qrcode').html(qr.createImgTag(cellSize, margin));
+
 
 </script>
 </body>

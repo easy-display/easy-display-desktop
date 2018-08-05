@@ -3,6 +3,8 @@ import * as os from "os";
 import * as path from "path";
 
 
+
+
 let mainWindow: Electron.BrowserWindow;
 
 function createWindow() {
@@ -57,3 +59,59 @@ app.on("activate", () => {
 
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
+
+
+
+
+
+import * as io from "socket.io-client";
+import Socket = SocketIOClient.Socket;
+
+import {ipcMain} from "electron";
+import {IConnection, IConnectionStatus, IMessage} from "./types";
+
+let socket: Socket;
+ipcMain.on("event_desktop_to_mobile", (event: Electron.Event, msgs: [IMessage] ) => {
+    socket.emit("event_desktop_to_mobile", { messages: msgs } );
+    event.returnValue = true;
+});
+
+ipcMain.on("socket-connect-request", (event: Electron.Event, c: IConnection) => {
+    console.log(`main message:${c}`); // logs out "Hello second window!"
+    const uri = `${c.scheme}://${c.host}/desktop/${c.version}?client_type=desktop&token=${c.token}`;
+    socket = io.connect(uri);
+
+    socket.on("connect", () => {
+        console.log("connected .");
+        mainWindow.webContents.send("socket-status", IConnectionStatus.Connected );
+        // win.webContents.send('targetPriceVal', arg)
+        // event.sender.send("socket-status", IConnectionStatus.Connected );
+        console.log(`connect to server: SUCCESS, socket.connected: ${socket.connected}`);
+
+        socket.on("event_server_to_desktop", (data: any) => {
+            console.log(`event_server_to_desktop: ${data}`);
+            // s.emit("event_to_client", { hello: "world" });
+        });
+        socket.on("event_mobile_to_desktop", (data: any) => {
+            console.log(`event_mobile_to_desktop: ${data}`);
+            if (data.name === "connection_success" ) {
+                mainWindow.webContents.send("socket-status", IConnectionStatus.PairingSuccess );
+                // myObservable.next(IConnectionStatus.PairingSuccess);
+                console.log("event_mobile_to_desktop > connection_success,  time to dismiss qr code");
+            }
+            // s.emit("event_to_client", { hello: "world" });
+        });
+        socket.on("reconnect", () => {
+            console.log("reconnect fired!");
+            mainWindow.webContents.send("socket-status", IConnectionStatus.Reconnected );
+        });
+        socket.on("disconnect", () => {
+            console.log("disconnect");
+            mainWindow.webContents.send("socket-status", IConnectionStatus.Disconnected );
+        });
+    });
+
+
+
+});
+

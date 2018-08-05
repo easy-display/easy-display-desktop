@@ -26,11 +26,19 @@ s[0].remove();
 <script>window.$ = window.jQuery = require('jquery');</script>
 
 <script>
-    const renderer = require('./renderer.js');
 
     const evaluateJavascript = () => {
         const js = document.getElementById("javascript_textarea").value;
-        renderer.evaluateJavaScript(js);
+        const {ipcRenderer} = require('electron');
+        const msgs= [{
+            dataNumber: 0 ,
+            dataString: js,
+            name: "evaluate_js",
+        }];
+        const result = ipcRenderer.sendSync('event_desktop_to_mobile', msgs);
+        if (result === true){
+            self.close();
+        }
     };
 
 </script>

@@ -4,11 +4,15 @@
   <head>
     <meta charset="UTF-8">
     <title>Easy Display</title>
+    <link rel="stylesheet" href="./assets/style/style.css"/>
     <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="./node_modules/@fortawesome/fontawesome-free/css/all.css"/>
-    <link rel="stylesheet" href="./assets/style/style.css"/>
+
   </head>
   <body class="container">
+
+  <div id="alert" class="alert" role="alert"></div>
+
     <div class="mt-2">
         <form>
             <div class="form-group">
@@ -36,9 +40,6 @@
         </div>
     </div>
 
-    <a href="javascript:void(0)" onclick="connect();">Connect</a>
-    <br/>
-    <a href="javascript:void(0)" onclick="sendMessage();">Send Message</a>
     <br/>
     <a href="javascript:void(0)" onclick="doAbout();">About</a>
     <br/>
@@ -50,17 +51,13 @@
   </script>
   <script src="./node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
 
-
   <script>
-    // You can also require other files to run in this process
 
     const renderer = require('./dist/renderer');
 
-    renderer.createNewConnection();
+    renderer.bindHtmlElementToConnectionStatus($("#alert")[0]);
 
-    const sendMessage = () => {
-        renderer.sendMessage();
-    };
+    renderer.createNewConnection();
 
     const openUrl = () => {
       // const url = document.getElementById("url_input").value;
