@@ -2,8 +2,7 @@ import { app, BrowserWindow } from "electron";
 import * as os from "os";
 import * as path from "path";
 
-
-
+import { Menu } from "electron";
 
 let mainWindow: Electron.BrowserWindow;
 
@@ -15,7 +14,8 @@ function createWindow() {
   });
 
   // and load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, "../index.html"));
+mainWindow.loadFile(path.join(__dirname, "../index.html"));
+
 
   // Open the DevTools.
   console.log(`process.env.NODE_ENV: ${process.env.NODE_ENV}`);
@@ -30,6 +30,100 @@ function createWindow() {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
+
+
+
+  const template: Electron.MenuItemConstructorOptions[] = [
+        {
+            label: "Edit",
+            submenu: [
+                {role: "undo"},
+                {role: "redo"},
+                {type: "separator"},
+                {role: "cut"},
+                {role: "copy"},
+                {role: "paste"},
+                {role: "pasteandmatchstyle"},
+                {role: "delete"},
+                {role: "selectall"},
+            ],
+        },
+        {
+            label: "View",
+            submenu: [
+                {role: "reload"},
+                {role: "forcereload"},
+                {role: "toggledevtools"},
+                {type: "separator"},
+                {role: "resetzoom"},
+                {role: "zoomin"},
+                {role: "zoomout"},
+                {type: "separator"},
+                {role: "togglefullscreen"},
+            ],
+        },
+        {
+            role: "window",
+            submenu: [
+                {role: "minimize"},
+                {role: "close"},
+            ],
+        },
+        {
+            role: "help",
+            submenu: [
+                {
+                    label: "Learn More",
+                    click() { require("electron").shell.openExternal("https://electronjs.org"); },
+                },
+            ],
+        },
+    ];
+
+  if (process.platform === "darwin") {
+        template.unshift({
+            label: app.getName(),
+            submenu: [
+                {role: "about"},
+                {type: "separator"},
+                {role: "services", submenu: []},
+                {type: "separator"},
+                {role: "hide"},
+                {role: "hideothers"},
+                {role: "unhide"},
+                {type: "separator"},
+                {role: "quit"},
+            ],
+        });
+
+        // Edit menu
+        const editSubmenu = template[1].submenu;
+        if ( editSubmenu instanceof Array ) {
+            editSubmenu.push(
+                {type: "separator"},
+                {
+                    label: "Speech",
+                    submenu: [
+                        {role: "startspeaking"},
+                        {role: "stopspeaking"},
+                    ],
+                },
+            );
+        }
+
+        // Window menu
+        template[3].submenu = [
+            {role: "close"},
+            {role: "minimize"},
+            {role: "zoom"},
+            {type: "separator"},
+            {role: "front"},
+        ];
+    }
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+
 }
 
 
@@ -57,6 +151,14 @@ app.on("activate", () => {
   }
 });
 
+
+// menu setup
+
+
+
+
+
+
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
 
@@ -69,6 +171,7 @@ import Socket = SocketIOClient.Socket;
 
 import {ipcMain} from "electron";
 import {IConnection, IConnectionStatus, IMessage} from "./types";
+import MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
 
 let socket: Socket;
 ipcMain.on("event_desktop_to_mobile", (event: Electron.Event, msgs: [IMessage] ) => {

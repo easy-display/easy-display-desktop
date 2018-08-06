@@ -175,7 +175,8 @@ const connectionUrl = (): string => {
     if (isDevel()) {
         return  "http://localhost:8999/api/v1/connection";
     } else {
-        return  "https://.....:443/";
+        // return  "https://.....:443/";
+        return  "http://localhost:8999/api/v1/connection";
     }
 };
 /*
@@ -307,7 +308,7 @@ module.exports = {
         }];
         // SocketManager.socket.emit("event_desktop_to_mobile", { messages: msgs } );
         ipcRenderer.sendSync("event_desktop_to_mobile", msgs);
-    }
+    },
 
 
 };

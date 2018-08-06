@@ -1,13 +1,41 @@
 {
   "name": "easy-display-desktop",
   "version": "0.1.0",
-  "description": "A minimal Electron application written with Typescript",
+  "description": "Easy Display, Desktop written with Electron / Typescript",
+  "main": "dist/main.js",
+
+  "build": {
+    "asar": true,
+    "productName": "EasyDisplay",
+    "directories": {
+      "output": "build",
+      "buildResources": "dist"
+    },
+    "files": [
+      "dist/*.js",
+      "dist/**/*.js",
+      "dist/*.html",
+      "dist/**/*.html",
+      "node_modules",
+      "index.html",
+      "assets/**/*"
+    ],
+    "mac": {
+      "appId": "com.tillawy.easy-display.desktop",
+      "identity": null,
+      "category": "Utility"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
     "lint": "tslint -c tslint.json -p tsconfig.json",
     "copy-html-files": "rm -f dist/qr.html; cp src/qr.html ./dist/; rm -rf dist/about.html; cp src/about.html dist/; rm -rf dist/exec-js.html; cp src/exec-js.html dist/;",
-    "start": "npm run build && ./node_modules/.bin/electron --inspect-brk=49492 ./dist/main.js"
+    "start": "npm run build && ./node_modules/.bin/electron --inspect-brk=49492 ./dist/main.js",
+    "pack": "electron-builder --dir",
+    "clean-dist": "rm -rf build/*",
+    "dist": "npm run clean-dist; npm run build; electron-builder",
+    "dev-dist": "CSC_IDENTITY_AUTO_DISCOVERY=false  electron-builder"
   },
   "repository": "https://github.com/electron/electron-quick-start-typescript",
   "keywords": [
@@ -21,9 +49,10 @@
   "author": "Mohammed O. Tillawy",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "^3.0.0-beta.3",
-    "tslint": "^5.10.0",
-    "typescript": "^2.9.2"
+    "electron": "^3.0.0-beta.4",
+    "tslint": "^5.11.0",
+    "typescript": "^3.0.1",
+    "electron-builder": "^20.26.1"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.2.0",
@@ -32,7 +61,7 @@
     "bootstrap": "^4.1.3",
     "electron-json-storage": "^4.1.0",
     "jquery": "^3.3.1",
-    "popper.js": "^1.14.3",
+    "popper.js": "^1.14.4",
     "qrcode-generator": "^1.4.0",
     "query-string": "^6.1.0",
     "rxjs": "^6.2.2",
