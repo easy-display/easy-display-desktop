@@ -27,7 +27,9 @@ s[0].remove();
 
 <script>
 
-    const evaluateJavascript = () => {
+    const EVENT_DESKTOP_TO_MOBILE =  require("./constants").EVENT_DESKTOP_TO_MOBILE;
+
+    function evaluateJavascript(){
         const js = document.getElementById("javascript_textarea").value;
         const {ipcRenderer} = require('electron');
         const msgs= [{
@@ -35,11 +37,11 @@ s[0].remove();
             dataString: js,
             name: "evaluate_js",
         }];
-        const result = ipcRenderer.sendSync('event_desktop_to_mobile', msgs);
+        const result = ipcRenderer.sendSync(EVENT_DESKTOP_TO_MOBILE, msgs);
         if (result === true){
             self.close();
         }
-    };
+    }
 
 </script>
 

@@ -14,13 +14,14 @@ import BrowserWindow = electron.BrowserWindow;
 
 let appConnection: IConnection;
 import ipcRenderer = electron.ipcRenderer;
+import {APP_CONNECTION_STATUS, EVENT_DESKTOP_TO_MOBILE, SOCKET_CONNECTION_REQUEST} from "./constants";
 const connectSocket = (conn: IConnection): void => {
     appConnection = conn;
-    ipcRenderer.send("socket-connect-request", conn);
+    ipcRenderer.send( SOCKET_CONNECTION_REQUEST, conn);
 };
 
-ipcRenderer.on("socket-status", (event: Electron.Event, connectionStatus: IConnectionStatus) => {
-    console.log(`"socket-status: ${connectionStatus}`);
+ipcRenderer.on(APP_CONNECTION_STATUS, (event: Electron.Event, connectionStatus: IConnectionStatus) => {
+    console.log(`"${APP_CONNECTION_STATUS}: ${connectionStatus}`);
     myObservable.next(connectionStatus);
 });
 
@@ -288,7 +289,7 @@ module.exports = {
             dataString: url ,
             name: "open_url",
         }];
-        ipcRenderer.sendSync("event_desktop_to_mobile", msgs);
+        ipcRenderer.sendSync(EVENT_DESKTOP_TO_MOBILE, msgs);
     },
     reload: () => {
         const msgs: [IMessage]  = [{
@@ -296,7 +297,7 @@ module.exports = {
             dataString: "",
             name: "reload",
         }];
-        ipcRenderer.sendSync("event_desktop_to_mobile", msgs);
+        ipcRenderer.sendSync(EVENT_DESKTOP_TO_MOBILE, msgs);
     },
 
     scroll: (degree: number) => {
@@ -307,7 +308,7 @@ module.exports = {
             name: "scroll",
         }];
         // SocketManager.socket.emit("event_desktop_to_mobile", { messages: msgs } );
-        ipcRenderer.sendSync("event_desktop_to_mobile", msgs);
+        ipcRenderer.sendSync(EVENT_DESKTOP_TO_MOBILE, msgs);
     },
 
 
