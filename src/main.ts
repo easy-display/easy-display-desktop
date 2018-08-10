@@ -172,10 +172,11 @@ import Socket = SocketIOClient.Socket;
 import {ipcMain} from "electron";
 import {
     APP_CONNECTION_STATUS,
-    CONNECTION_SUCCESS,
     EVENT_DESKTOP_TO_MOBILE,
     EVENT_MOBILE_TO_DESKTOP,
     EVENT_SERVER_TO_DESKTOP,
+    MOBILE_CONNECTION_LOST,
+    MOBILE_CONNECTION_SUCCESS,
     SOCKET_CONNECTION_REQUEST,
 } from "./constants";
 
@@ -184,7 +185,7 @@ import {IConnection, IConnectionStatus, IMessage} from "./types";
 let socket: Socket;
 ipcMain.on(EVENT_DESKTOP_TO_MOBILE, (event: Electron.Event, msgs: [IMessage] ) => {
     console.debug("main event_desktop_to_mobile msgs:", msgs);
-    socket.emit(EVENT_DESKTOP_TO_MOBILE, { messages: msgs } );
+    socket.emit(EVENT_DESKTOP_TO_MOBILE, msgs );
     event.returnValue = true;
 });
 
@@ -200,12 +201,15 @@ ipcMain.on( SOCKET_CONNECTION_REQUEST, (event: Electron.Event, c: IConnection) =
         // event.sender.send("socket-status", IConnectionStatus.Connected );
 
         socket.on(EVENT_SERVER_TO_DESKTOP, (data: any) => {
-            console.debug(`${EVENT_SERVER_TO_DESKTOP}: ${data}`);
+            console.log(`${EVENT_SERVER_TO_DESKTOP}`, data);
+            if (data[0].name === MOBILE_CONNECTION_LOST ) {
+                mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.MobileConnectionLost );
+            }
             // s.emit("event_to_client", { hello: "world" });
         });
         socket.on(EVENT_MOBILE_TO_DESKTOP, (data: any) => {
-            console.log(`${EVENT_MOBILE_TO_DESKTOP}: ${data}`);
-            if ( data.name === CONNECTION_SUCCESS ) {
+            console.log(` • ${EVENT_MOBILE_TO_DESKTOP} : `, data);
+            if ( data[0].name === MOBILE_CONNECTION_SUCCESS ) {
                 mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.PairingSuccess );
                 // myObservable.next(IConnectionStatus.PairingSuccess);
                 console.log(`${EVENT_MOBILE_TO_DESKTOP} > connection_success,  time to dismiss qr code`);

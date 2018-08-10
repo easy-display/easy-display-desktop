@@ -25,4 +25,5 @@ export enum IConnectionStatus {
     PairingInProgress = "PairingInProgress",
     PairingSuccess = "PairingSuccess",
     Failed = "Failed",
+    MobileConnectionLost = "mobile_connection_lost",
 }

@@ -5,16 +5,17 @@
 import {IConnection, IConnectionStatus, IMessage} from "./types";
 
 import axios, {AxiosResponse} from "axios";
-import electron = require("electron");
 import {Promise} from "es6-promise";
 import * as path from "path";
 import {Subject} from "rxjs";
+import {APP_CONNECTION_STATUS, EVENT_DESKTOP_TO_MOBILE, SOCKET_CONNECTION_REQUEST} from "./constants";
+import electron = require("electron");
 import BrowserWindow = electron.BrowserWindow;
+import ipcRenderer = electron.ipcRenderer;
 
 
 let appConnection: IConnection;
-import ipcRenderer = electron.ipcRenderer;
-import {APP_CONNECTION_STATUS, EVENT_DESKTOP_TO_MOBILE, SOCKET_CONNECTION_REQUEST} from "./constants";
+
 const connectSocket = (conn: IConnection): void => {
     appConnection = conn;
     ipcRenderer.send( SOCKET_CONNECTION_REQUEST, conn);
@@ -60,11 +61,15 @@ const alertInfoToDiv = ((div: HTMLElement) => {
         console.log(`myObservable: ${value}`);
         resetClasses();
         switch (value) {
+            case IConnectionStatus.MobileConnectionLost:
+                div.innerText = "iPad lost";
+                div.classList.add("alert-danger");
+                openQrCodeDialogue(appConnection);
+                break;
             case IConnectionStatus.Connected:
                 div.innerText = "Connected";
                 div.classList.add("alert-primary");
                 openQrCodeDialogue(appConnection);
-
                 break;
             case IConnectionStatus.Disconnected:
                 div.innerText = "Disconnected ! Trying to reconnect ...";
@@ -94,7 +99,9 @@ const alertInfoToDiv = ((div: HTMLElement) => {
                 div.innerText = "Ready to use";
                 div.classList.add("alert-success");
                 clearAllInfosClasses();
-                qrWin.close();
+                if (qrWin) {
+                    qrWin.close();
+                }
                 break;
             case IConnectionStatus.Failed:
                 div.innerText = "Connected Failed, please check your internet, reconnecting in a few ...";
@@ -115,8 +122,13 @@ ipcRenderer.on("message", (event: Electron.Event, arg: string) => {
 */
 
 
-let qrWin: BrowserWindow;
+let qrWin: BrowserWindow = null;
 const openQrCodeDialogue = (conn: IConnection): void => {
+
+    if (qrWin) {
+        console.log(`qrWin: ${qrWin} && qrWin.isFocused(): ${qrWin.isFocused()}`);
+        return;
+    }
     const params = `scheme=${conn.scheme}&version=${conn.version}&host=${conn.host}&token=${conn.token}`;
     const modalPath = path.join(`file://${__dirname}/qr.html?${params}`);
     console.log(`modalPath: ${modalPath}`);
