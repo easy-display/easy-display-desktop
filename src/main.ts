@@ -2,14 +2,66 @@ import { app, BrowserWindow } from "electron";
 import * as os from "os";
 import * as path from "path";
 
-import { Menu } from "electron";
+import { Menu, nativeImage , Tray} from "electron";
 
+let tray: Electron.Tray;
 let mainWindow: Electron.BrowserWindow;
 
+
+const showWindow = () => {
+    const trayPos = tray.getBounds();
+    const windowPos = mainWindow.getBounds();
+    let x = 0;
+    let y = 0;
+    console.log(`process.platform: ${process.platform}`) ;
+    if (process.platform === "darwin") {
+        x = Math.round(trayPos.x + (trayPos.width / 2) - (windowPos.width / 2));
+        y = Math.round(trayPos.y + trayPos.height);
+    } else {
+        x = Math.round(trayPos.x + (trayPos.width / 2) - (windowPos.width / 2));
+        y = Math.round(trayPos.y + trayPos.height * 10);
+    }
+
+    mainWindow.setPosition(x, y, false);
+    mainWindow.show();
+    mainWindow.focus();
+};
+
+
+const toggleWindow = () => {
+    console.log(`mainWindow.isVisible(): ${mainWindow.isVisible()}`);
+    if (mainWindow.isVisible()) {
+        mainWindow.hide();
+    } else {
+        showWindow();
+    }
+};
+
+function createTray() {
+    const icon = nativeImage.createFromDataURL(base64Icon);
+    tray = new Tray(icon);
+
+    // Add a click handler so that when the user clicks on the menubar icon, it shows
+    // our popup window
+    tray.on("click", (event) => {
+        toggleWindow();
+        console.log(`event.metaKey: ${event.metaKey}`);
+        // Show devtools when command clicked
+        // if (mainWindow.isVisible() && process.defaultApp && event.metaKey) {
+        //     mainWindow.webContents.openDevTools({mode: "undocked"});
+        // }
+    });
+
+}
+
 function createWindow() {
+
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    height: 600,
+    frame: false,
+    height: 300,
+    resizable: false,
+    show: false,
     width: 800,
   });
 
@@ -123,7 +175,7 @@ function createWindow() {
 
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
-
+  createTray();
 }
 
 
@@ -190,7 +242,7 @@ ipcMain.on(EVENT_DESKTOP_TO_MOBILE, (event: Electron.Event, msgs: [IMessage] ) =
 });
 
 ipcMain.on( SOCKET_CONNECTION_REQUEST, (event: Electron.Event, c: IConnection) => {
-    console.debug(`main message ${SOCKET_CONNECTION_REQUEST}:${c}`);
+    console.debug(`main message ${SOCKET_CONNECTION_REQUEST}:`, c);
     const uri = `${c.scheme}://${c.host}/desktop/${c.version}?client_type=desktop&token=${c.token}`;
     socket = io.connect(uri);
 
@@ -229,4 +281,21 @@ ipcMain.on( SOCKET_CONNECTION_REQUEST, (event: Electron.Event, c: IConnection) =
 
 
 });
+
+// Tray Icon as Base64 so tutorial has less overhead
+const base64Icon = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw
+7AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AkZCg87wZW7ewA
+AAp1JREFUOMuV1U2IVlUcx/HPnbc0MWwEF40hRWRQmWhEUi4KorlTQ0zQKgqSxKinRYuWrdq0iIp8DAy
+CFmYUUVTYY0Qw0SsYVDQRlFlQU4o4VDMUY9NzWtz/45znzo3yv7n/l3O+53fOPS+F/7R9G0l34Vlap/x
+PG+gPby76471jpJdxI4p/x5QrakPVZ3yI4lLSLH4LpetIT5N24AWKpZXAW4boXogFnGxQXEzhdQYHl0v
+pbtJkBIOkBqXpVhzAWIPi8hocxCyH5qp0e10oHY6BNy3P7szULyc9hzkGTjat8WPRqctkD3QORrJ211J
+srPV7CKP4i7S6CXxF+GtY2lG5D5yg+D6bckHaRXs463dV+OtJVzeBj4Q/inuy2uf4NYPvyVR38Vn4GzD
+ZAC5ezHbITsqtEU8HvGcjpFblDncpDma16yhvqit+c3mLuQj3Vm7rJ4r3kW+z+6sD80aKQWcivwm318B
+pHk9mA11PuSXil/B1thyrSA9HMI8nMtYNlDszcKdbHVcLkduCO0L1VxTv1VTv5plR3lrCuzga+c2YqB2
+QNEfqjV7EWl8c8X78kKleTTfWeuA49maDjlNuz8CHFykOYDEabKvg0Jqh+AB/Z4D7qs+h03gbxyK/FVf
+WL6FfsC/8tdGoZ0/hRKZ6A+2pUP1jdZecse01cGcBr2YNzqdcG6q/oDgS+7e3XLeF6j/wTvzM6Lfi2nQ
+KP8e0P6Ezn9X2488MvLnW75vwP2wCr8J5eD4upsxaHZzOwNNZcU2c3FfwWg1cDuISfIxH6fzedE8G90s
+8nuXH8B0eoXNc/6tQjsQfXaQz0/BEXUD3W4oF0hQPflTlJwZIl+FcOp86e2vvoj1Le6I/P974ZA2dBXk
+97qQ13Z8+3PS0+AdjKa1R95YOZgAAAABJRU5ErkJggg==`;
+
 

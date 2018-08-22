@@ -5,11 +5,11 @@
 import {IConnection, IConnectionStatus, IMessage} from "./types";
 
 import axios, {AxiosResponse} from "axios";
+import electron = require("electron");
 import {Promise} from "es6-promise";
 import * as path from "path";
 import {Subject} from "rxjs";
 import {APP_CONNECTION_STATUS, EVENT_DESKTOP_TO_MOBILE, SOCKET_CONNECTION_REQUEST} from "./constants";
-import electron = require("electron");
 import BrowserWindow = electron.BrowserWindow;
 import ipcRenderer = electron.ipcRenderer;
 
@@ -101,6 +101,7 @@ const alertInfoToDiv = ((div: HTMLElement) => {
                 clearAllInfosClasses();
                 if (qrWin) {
                     qrWin.close();
+                    qrWin = null;
                 }
                 break;
             case IConnectionStatus.Failed:
@@ -127,14 +128,17 @@ const openQrCodeDialogue = (conn: IConnection): void => {
 
     if (qrWin) {
         console.log(`qrWin: ${qrWin} && qrWin.isFocused(): ${qrWin.isFocused()}`);
-        return;
+        // return;
     }
     const params = `scheme=${conn.scheme}&version=${conn.version}&host=${conn.host}&token=${conn.token}`;
     const modalPath = path.join(`file://${__dirname}/qr.html?${params}`);
     console.log(`modalPath: ${modalPath}`);
     qrWin = new ElectronBrowserWindow({
         alwaysOnTop: true,
+        frame: false,
         height: 300 ,
+        resizable: false,
+        show: false,
         width: 300,
     });
     qrWin.on("close", () => { qrWin = null; });
@@ -168,13 +172,16 @@ const openAboutDialogue = () => {
 };
 
 const initializeConnection = () => {
+    console.log(`Renderer initializeConnection: connectionUrl: ${connectionUrl()}`);
     myObservable.next(IConnectionStatus.Connecting);
     delay(1000).then(() => {
         axios.post(connectionUrl(), { version: appVersion() })
             .then((response: AxiosResponse<IConnection>) => {
+                console.info(`Renderer initializeConnection success:`, response.data);
+                console.log(`Renderer initializeConnection response.headers:`, response.headers);
                 connectSocket(response.data);
             }).catch((reason) => {
-                console.log(reason);
+                console.error(reason);
                 myObservable.next(IConnectionStatus.Failed);
                 delay(3000).then(() => {
                     myObservable.next(IConnectionStatus.Reconnecting);
@@ -186,71 +193,13 @@ const initializeConnection = () => {
 
 const connectionUrl = (): string => {
     if (isDevel()) {
-        return  "http://localhost:8999/api/v1/connection";
+        // return  "http://localhost:8999/api/v1/connection";
+        return  "https://api-staging.easydisplay.info/api/v1/connection";
     } else {
-        // return  "https://.....:443/";
-        return  "http://localhost:8999/api/v1/connection";
+        return  "https://api-production.easydisplay.info/api/v1/connection";
     }
 };
-/*
-class SocketManager {
 
-    public static socket: Socket;
-    private static createSocket(c: IConnection): void {
-        if (SocketManager.socket) {
-            return;
-        }
-        const uri = `${c.scheme}://${c.host}/desktop/${c.version}?client_type=desktop&token=${c.token}`;
-        SocketManager.socket = io.connect(uri);
-    }
-
-    private readonly connection: IConnection;
-    constructor(conn: IConnection) {
-        this.connection = conn;
-        SocketManager.createSocket(this.connection);
-    }
-
-}
-*/
-
-/*
-let socket: Socket;
-
-const connectSocket = (conn: IConnection): void => {
-    console.log("connectSocket ...");
-
-    const mgr = new SocketManager(conn);
-    socket = SocketManager.socket;
-    socket.on("connect", () => {
-        myObservable.next(IConnectionStatus.Connected);
-        console.log(`connect to server: SUCCESS, socket.connected: ${socket.connected}`);
-        openQrCodeDialogue(conn);
-        myObservable.next(IConnectionStatus.PairingInProgress);
-        // s.emit("event_to_client", { hello: "world" });
-        socket.on("event_server_to_desktop", (data: any) => {
-            console.log(`event_server_to_desktop: ${data}`);
-            // s.emit("event_to_client", { hello: "world" });
-        });
-        socket.on("event_mobile_to_desktop", (data: any) => {
-            console.log(`event_mobile_to_desktop: ${data}`);
-            if (data.name === "connection_success" ) {
-                myObservable.next(IConnectionStatus.PairingSuccess);
-                console.log("event_mobile_to_desktop > connection_success,  time to dismiss qr code");
-                qrWin.close();
-            }
-            // s.emit("event_to_client", { hello: "world" });
-        });
-        socket.on("reconnect", () => {
-            console.log("reconnect fired!");
-            myObservable.next(IConnectionStatus.Reconnected);
-        });
-        socket.on("disconnect", () => {
-            console.log("disconnect");
-            myObservable.next(IConnectionStatus.Disconnected);
-        });
-    });
-};
-*/
 
 const appVersion = (): string => {
     const pjson = require("../package.json");
@@ -283,17 +232,6 @@ module.exports = {
     openExecJs: () => {
         openExecJsDialogue();
     },
-
-    /*evaluateJavaScript: (js: string) => {
-        console.log(`evaluateJavaScript: ${js}`);
-        const msgs: [IMessage] = [{
-            dataNumber: 0 ,
-            dataString: js,
-            name: "evaluate_js",
-        }];
-        // SocketManager.socket.emit("event_desktop_to_mobile", { messages: msgs } );
-    },*/
-
     openUrl: (url: string) => {
         console.log(`openUrl: ${url}`);
         const msgs: [IMessage] = [{

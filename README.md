@@ -58,3 +58,11 @@ npm run watch
 https://github.com/shaack/electron-bootstrap-starter
 
 https://github.com/sourcechord/electron-gridlayout-sample
+
+
+menu-bar setup from:
+
+https://steemit.com/education/@ryanbaer/getting-started-with-electron-a-basic-menubar-app-part-1
+
+
+
