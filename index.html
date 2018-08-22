@@ -14,7 +14,7 @@
   <div id="alert" class="alert" role="alert"></div>
 
     <div class="mt-2">
-        <form>
+        <form id="url-form">
             <div class="form-group">
                 <label for="url_input">URL:</label>
                 <input type="text" id="url_input" class="form-control"  name="url_name" value="https://stackoverflow.com/questions/26326296/changing-text-of-uibutton-programmatically-swift" size="80"/>
@@ -72,6 +72,12 @@
     const doAbout = () => {
         renderer.about();
     };
+
+    $("#url-form").submit(function() {
+        openUrl();
+        return false;
+    });
+
 
   </script>
 </html>
