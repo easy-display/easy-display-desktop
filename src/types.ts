@@ -16,14 +16,16 @@ export interface IConnection {
 
 
 export enum IConnectionStatus {
-    Starting = "Starting",
-    Connecting = "Connecting",
-    Connected = "Connected",
-    Disconnected = "Disconnected",
-    Reconnecting = "Reconnecting",
-    Reconnected = "Reconnected",
-    PairingInProgress = "PairingInProgress",
-    PairingSuccess = "PairingSuccess",
-    Failed = "Failed",
-    MobileConnectionLost = "mobile_connection_lost",
+    Starting                = "starting",
+    Connecting              = "connecting",
+    Connected               = "connected",
+    Disconnected            = "disconnected",
+    Reconnecting            = "reconnecting",
+    Reconnected             = "reconnected",
+    PairingInProgress       = "pairing-in-progress",
+    PairingSuccess          = "pairing-success",
+    Failed                  = "failed",
+    MobileConnectionLost    = "mobile-connection-lost",
+    MobileToBackground      = "mobile-to-background",
+    MobileIsForeground      = "mobile-is-foreground",
 }

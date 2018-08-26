@@ -2,27 +2,24 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-import {IConnection, IConnectionStatus, IMessage} from "./types";
-
-import axios, {AxiosResponse} from "axios";
-import electron = require("electron");
+import {IConnectionStatus, IMessage} from "./types";
 import {Promise} from "es6-promise";
 import * as path from "path";
 import {Subject} from "rxjs";
-import {APP_CONNECTION_STATUS, EVENT_DESKTOP_TO_MOBILE, SOCKET_CONNECTION_REQUEST} from "./constants";
-import BrowserWindow = electron.BrowserWindow;
+import {
+    APP_CONNECTION_STATUS,
+    EVENT_CLOSE_QR_CODE,
+    EVENT_DESKTOP_TO_MOBILE,
+    EVENT_INIT_CONNECTION,
+    EVENT_OPEN_QR_CODE
+} from "./constants";
+import electron = require("electron");
+// import BrowserWindow = electron.BrowserWindow;
 import ipcRenderer = electron.ipcRenderer;
 
 
-let appConnection: IConnection;
-
-const connectSocket = (conn: IConnection): void => {
-    appConnection = conn;
-    ipcRenderer.send( SOCKET_CONNECTION_REQUEST, conn);
-};
-
 ipcRenderer.on(APP_CONNECTION_STATUS, (event: Electron.Event, connectionStatus: IConnectionStatus) => {
-    console.log(`"${APP_CONNECTION_STATUS}: ${connectionStatus}`);
+    console.log(`"ipcRenderer.on(APP_CONNECTION_STATUS: (${connectionStatus})`);
     myObservable.next(connectionStatus);
 });
 
@@ -30,14 +27,10 @@ ipcRenderer.on(APP_CONNECTION_STATUS, (event: Electron.Event, connectionStatus: 
 const ElectronBrowserWindow = electron.remote.BrowserWindow;
 
 
-const isDevel = (): boolean => {
-    return process.env.NODE_ENV === "development";
-};
-
-
 const delay = (ms: number) => {
     return new Promise((resolve) => setTimeout(resolve, ms));
 };
+
 
 const myObservable = new Subject();
 const alertInfoToDiv = ((div: HTMLElement) => {
@@ -61,15 +54,27 @@ const alertInfoToDiv = ((div: HTMLElement) => {
         console.log(`myObservable: ${value}`);
         resetClasses();
         switch (value) {
+            case IConnectionStatus.MobileToBackground:
+                div.innerText = "iPad is in background";
+                div.classList.add("alert-warning");
+                break;
+            case IConnectionStatus.MobileIsForeground:
+                div.innerText = "iPad is back";
+                div.classList.add("alert-success");
+                clearAllInfosClasses();
+                break;
             case IConnectionStatus.MobileConnectionLost:
                 div.innerText = "iPad lost";
                 div.classList.add("alert-danger");
-                openQrCodeDialogue(appConnection);
+                // openQrCodeDialogue(appConnection);
+                ipcRenderer.sendSync(EVENT_OPEN_QR_CODE);
                 break;
             case IConnectionStatus.Connected:
                 div.innerText = "Connected";
                 div.classList.add("alert-primary");
-                openQrCodeDialogue(appConnection);
+                // openQrCodeDialogue(appConnection);
+                ipcRenderer.sendSync(EVENT_OPEN_QR_CODE);
+                // ipcRenderer.sendSync(EVENT_DESKTOP_TO_MOBILE, msgs);
                 break;
             case IConnectionStatus.Disconnected:
                 div.innerText = "Disconnected ! Trying to reconnect ...";
@@ -99,10 +104,11 @@ const alertInfoToDiv = ((div: HTMLElement) => {
                 div.innerText = "Ready to use";
                 div.classList.add("alert-success");
                 clearAllInfosClasses();
-                if (qrWin) {
-                    qrWin.close();
-                    qrWin = null;
-                }
+                ipcRenderer.sendSync(EVENT_CLOSE_QR_CODE);
+                // if (qrWin) {
+                //     qrWin.close();
+                //     qrWin = null;
+                // }
                 break;
             case IConnectionStatus.Failed:
                 div.innerText = "Connected Failed, please check your internet, reconnecting in a few ...";
@@ -122,7 +128,7 @@ ipcRenderer.on("message", (event: Electron.Event, arg: string) => {
 });
 */
 
-
+/*
 let qrWin: BrowserWindow = null;
 const openQrCodeDialogue = (conn: IConnection): void => {
 
@@ -146,7 +152,7 @@ const openQrCodeDialogue = (conn: IConnection): void => {
     qrWin.show();
     myObservable.next(IConnectionStatus.PairingInProgress);
 };
-
+*/
 const openExecJsDialogue = () => {
     const execPath = path.join(`file://${__dirname}/exec-js.html`);
     let execWin = new ElectronBrowserWindow({
@@ -171,40 +177,6 @@ const openAboutDialogue = () => {
     aboutWin.show();
 };
 
-const initializeConnection = () => {
-    console.log(`Renderer initializeConnection: connectionUrl: ${connectionUrl()}`);
-    myObservable.next(IConnectionStatus.Connecting);
-    delay(1000).then(() => {
-        axios.post(connectionUrl(), { version: appVersion() })
-            .then((response: AxiosResponse<IConnection>) => {
-                console.info(`Renderer initializeConnection success:`, response.data);
-                console.log(`Renderer initializeConnection response.headers:`, response.headers);
-                connectSocket(response.data);
-            }).catch((reason) => {
-                console.error(reason);
-                myObservable.next(IConnectionStatus.Failed);
-                delay(3000).then(() => {
-                    myObservable.next(IConnectionStatus.Reconnecting);
-                    initializeConnection();
-                });
-            });
-    });
-};
-
-const connectionUrl = (): string => {
-    if (isDevel()) {
-        // return  "http://localhost:8999/api/v1/connection";
-        return  "https://api-staging.easydisplay.info/api/v1/connection";
-    } else {
-        return  "https://api-production.easydisplay.info/api/v1/connection";
-    }
-};
-
-
-const appVersion = (): string => {
-    const pjson = require("../package.json");
-    return pjson.version;
-};
 
 
 module.exports = {
@@ -216,13 +188,14 @@ module.exports = {
     about: () => {
         openAboutDialogue();
     },
-
-    appVersion: () => {
-        return appVersion();
-    },
-
+    //
+    // appVersion: () => {
+    //     return appVersion();
+    // },
+    //
     createNewConnection: () => {
-        initializeConnection();
+        // initializeConnection();
+        ipcRenderer.send(EVENT_INIT_CONNECTION);
     },
 
     doit: () => {

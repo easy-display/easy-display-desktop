@@ -13,6 +13,14 @@ export const APP_CONNECTION_STATUS = "app-connection-status";
 
 export const MOBILE_CONNECTION_LOST = "mobile-connection-lost";
 
-export const SOCKET_CONNECTION_REQUEST = "socket-connect-request";
+// export const SOCKET_CONNECTION_REQUEST = "socket-connect-request";
 
+export const EVENT_OPEN_QR_CODE = "event-open-qr-code";
 
+export const EVENT_CLOSE_QR_CODE = "event-close-qr-code";
+
+export const EVENT_INIT_CONNECTION = "event-init-connection";
+
+export const MOBILE_TO_BACKGROUND = "mobile-to-backgound";
+
+export const MOBILE_IS_FOREGROUND = "mobile-is-foreground";

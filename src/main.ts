@@ -1,11 +1,10 @@
 import { app, BrowserWindow } from "electron";
+import { Menu, nativeImage , Tray} from "electron";
 import * as os from "os";
 import * as path from "path";
-
-import { Menu, nativeImage , Tray} from "electron";
-
 let tray: Electron.Tray;
 let mainWindow: Electron.BrowserWindow;
+import {Promise} from "es6-promise";
 
 
 const showWindow = () => {
@@ -223,15 +222,15 @@ import Socket = SocketIOClient.Socket;
 
 import {ipcMain} from "electron";
 import {
-    APP_CONNECTION_STATUS,
-    EVENT_DESKTOP_TO_MOBILE,
-    EVENT_MOBILE_TO_DESKTOP,
+    APP_CONNECTION_STATUS, EVENT_CLOSE_QR_CODE,
+    EVENT_DESKTOP_TO_MOBILE, EVENT_INIT_CONNECTION,
+    EVENT_MOBILE_TO_DESKTOP, EVENT_OPEN_QR_CODE,
     EVENT_SERVER_TO_DESKTOP,
     MOBILE_CONNECTION_LOST,
-    MOBILE_CONNECTION_SUCCESS,
-    SOCKET_CONNECTION_REQUEST,
+    MOBILE_CONNECTION_SUCCESS, MOBILE_IS_FOREGROUND, MOBILE_TO_BACKGROUND,
 } from "./constants";
 
+import axios, {AxiosResponse} from "axios";
 import {IConnection, IConnectionStatus, IMessage} from "./types";
 
 let socket: Socket;
@@ -241,8 +240,34 @@ ipcMain.on(EVENT_DESKTOP_TO_MOBILE, (event: Electron.Event, msgs: [IMessage] ) =
     event.returnValue = true;
 });
 
+ipcMain.on(EVENT_OPEN_QR_CODE, (event: Electron.Event ) => {
+    // console.debug("main event_desktop_to_mobile msgs:", msgs);
+    openQrCodeDialogue(appConnection);
+    event.returnValue = true;
+});
+
+
+ipcMain.on(EVENT_INIT_CONNECTION, (event: Electron.Event ) => {
+    initializeConnection();
+});
+
+ipcMain.on(EVENT_CLOSE_QR_CODE, (event: Electron.Event ) => {
+    // console.debug("main event_desktop_to_mobile msgs:", msgs);
+    if (qrWin) {
+        qrWin.close();
+        qrWin = null;
+    }
+    event.returnValue = true;
+});
+
+
+/*
 ipcMain.on( SOCKET_CONNECTION_REQUEST, (event: Electron.Event, c: IConnection) => {
-    console.debug(`main message ${SOCKET_CONNECTION_REQUEST}:`, c);
+    console.debug(`main message SOCKET_CONNECTION_REQUEST: ${SOCKET_CONNECTION_REQUEST}:`, c);
+    connectSocketRequest(event, c);
+});
+*/
+const setupSocketForConnection = (c: IConnection) => {
     const uri = `${c.scheme}://${c.host}/desktop/${c.version}?client_type=desktop&token=${c.token}`;
     socket = io.connect(uri);
 
@@ -260,27 +285,127 @@ ipcMain.on( SOCKET_CONNECTION_REQUEST, (event: Electron.Event, c: IConnection) =
             // s.emit("event_to_client", { hello: "world" });
         });
         socket.on(EVENT_MOBILE_TO_DESKTOP, (data: any) => {
-            console.log(` • ${EVENT_MOBILE_TO_DESKTOP} : `, data);
-            if ( data[0].name === MOBILE_CONNECTION_SUCCESS ) {
-                mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.PairingSuccess );
-                // myObservable.next(IConnectionStatus.PairingSuccess);
-                console.log(`${EVENT_MOBILE_TO_DESKTOP} > connection_success,  time to dismiss qr code`);
+            console.log(` •EVENT_MOBILE_TO_DESKTOP: ${EVENT_MOBILE_TO_DESKTOP} : `, data);
+            // console.log(`${EVENT_MOBILE_TO_DESKTOP} > connection_success,  time to dismiss qr code`);
+
+            if ( data[0].name === MOBILE_TO_BACKGROUND ) {
+                mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.MobileToBackground );
             }
+            if ( data[0].name === MOBILE_IS_FOREGROUND ) {
+                mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.MobileIsForeground );
+            }
+            if ( data[0].name === MOBILE_CONNECTION_SUCCESS ) {
+                // myObservable.next(IConnectionStatus.PairingSuccess);
+                mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.PairingSuccess );
+            }
+
+
+
+
             // s.emit("event_to_client", { hello: "world" });
         });
         socket.on("reconnect", () => {
             console.log("reconnect fired!");
             mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Reconnected );
         });
-        socket.on("disconnect", () => {
-            console.log("disconnect");
+        socket.on("disconnect", (reason: string) => {
+            console.log("disconnect, reason: ", reason);
             mainWindow.webContents.send(APP_CONNECTION_STATUS, IConnectionStatus.Disconnected );
         });
     });
 
+};
 
 
-});
+
+const delay = (ms: number) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+const isDevel = (): boolean => {
+    return process.env.NODE_ENV === "development";
+};
+
+
+const appVersion = (): string => {
+    const pjson = require("../package.json");
+    return pjson.version;
+};
+
+let appConnection: IConnection;
+
+const connectSocket = (conn: IConnection): void => {
+    appConnection = conn;
+    // ipcRenderer.send( SOCKET_CONNECTION_REQUEST, conn);
+    setupSocketForConnection(conn);
+};
+
+
+const initializeConnection = () => {
+    console.log(`Renderer initializeConnection: connectionUrl: ${connectionUrl()}`);
+    mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Connecting );
+    // myObservable.next(IConnectionStatus.Connecting);
+    delay(1000).then(() => {
+        axios.post(connectionUrl(), { version: appVersion() })
+            .then((response: AxiosResponse<IConnection>) => {
+                console.info(`Renderer initializeConnection success:`, response.data);
+                console.log(`Renderer initializeConnection response.headers:`, response.headers);
+                connectSocket(response.data);
+            }).catch((reason) => {
+            console.error(reason);
+            // myObservable.next(IConnectionStatus.Failed);
+            mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Failed );
+            delay(3000).then(() => {
+                // myObservable.next(IConnectionStatus.Reconnecting);
+                mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Reconnecting );
+                initializeConnection();
+            });
+        });
+    });
+};
+
+// import electron = require("electron");
+// import { BrowserWindow } from "electron";
+
+let qrWin: BrowserWindow = null;
+
+const openQrCodeDialogue = (conn: IConnection): void => {
+
+    if (qrWin) {
+        console.log(`qrWin: ${qrWin} && qrWin.isFocused(): ${qrWin.isFocused()}`);
+        // return;
+    }
+    const params = `scheme=${conn.scheme}&version=${conn.version}&host=${conn.host}&token=${conn.token}`;
+    const modalPath = path.join(`file://${__dirname}/qr.html?${params}`);
+    console.log(`modalPath: ${modalPath}`);
+    // const ElectronBrowserWindow = electron.BrowserWindow;
+    qrWin = new BrowserWindow({
+        alwaysOnTop: true,
+        frame: false,
+        height: 300 ,
+        resizable: false,
+        show: false,
+        width: 300,
+    });
+    qrWin.on("close", () => { qrWin = null; });
+    qrWin.loadURL(modalPath);
+    qrWin.show();
+    // myObservable.next(IConnectionStatus.PairingInProgress);
+    mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.PairingInProgress );
+};
+
+
+
+const connectionUrl = (): string => {
+    if (isDevel()) {
+        // return  "http://localhost:9000/api/v1/connection";
+        return  "https://api-staging.easydisplay.info/api/v1/connection";
+    } else {
+        return  "https://api-production.easydisplay.info/api/v1/connection";
+    }
+};
+
+
 
 // Tray Icon as Base64 so tutorial has less overhead
 const base64Icon = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw
