@@ -1,4 +1,11 @@
 
+
+export enum IApiEnvironmentEnum {
+    Development  = "development",
+    Staging      = "staging",
+    Production   = "production",
+}
+
 export interface IMessage {
     name: string;
     dataString: string;
