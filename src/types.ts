@@ -23,16 +23,24 @@ export interface IConnection {
 
 
 export enum IConnectionStatus {
-    Starting                = "starting",
-    Connecting              = "connecting",
-    Connected               = "connected",
-    Disconnected            = "disconnected",
-    Reconnecting            = "reconnecting",
-    Reconnected             = "reconnected",
-    PairingInProgress       = "pairing-in-progress",
-    PairingSuccess          = "pairing-success",
-    Failed                  = "failed",
-    MobileConnectionLost    = "mobile-connection-lost",
-    MobileToBackground      = "mobile-to-background",
-    MobileIsForeground      = "mobile-is-foreground",
+    Starting                    = "starting",
+    Connecting                  = "connecting",
+    ConnectingPrevious          = "connecting-previous",
+    Connected                   = "connected",
+    Disconnected                = "disconnected",
+    Reconnecting                = "reconnecting",
+    Reconnected                 = "reconnected",
+    PairingRequired             = "pairing-required",
+    PairingInProgress           = "pairing-in-progress",
+    PairingSuccess              = "pairing-success",
+    Failed                      = "failed",
+    DesktopConnectionLost       = "desktop-connection-lost",
+    DesktopConnectionSuccessIpadPairingRequired    = "desktop-connection-success-ipad-pairing-required",
+    DesktopConnectionSuccessIpadPaired    = "desktop-connection-success-ipad-paired",
+    MobileConnectionLost        = "mobile-connection-lost",
+    MobileToBackground          = "mobile-to-background",
+    MobileIsForeground          = "mobile-is-foreground",
 }
+
+
+

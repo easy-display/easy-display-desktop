@@ -2,7 +2,7 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-import {IConnectionStatus, IMessage} from "./types";
+import electron = require("electron");
 import {Promise} from "es6-promise";
 import * as path from "path";
 import {Subject} from "rxjs";
@@ -11,9 +11,9 @@ import {
     EVENT_CLOSE_QR_CODE,
     EVENT_DESKTOP_TO_MOBILE,
     EVENT_INIT_CONNECTION,
-    EVENT_OPEN_QR_CODE
+    EVENT_OPEN_QR_CODE,
 } from "./constants";
-import electron = require("electron");
+import {IConnectionStatus, IMessage} from "./types";
 // import BrowserWindow = electron.BrowserWindow;
 import ipcRenderer = electron.ipcRenderer;
 
@@ -43,6 +43,9 @@ const alertInfoToDiv = ((div: HTMLElement) => {
         });
     });
 
+    const openQrCode = () => {
+        ipcRenderer.sendSync(EVENT_OPEN_QR_CODE);
+    };
     const clearAllInfosClasses = (() => {
         delay(3000).then(() => {
             resetClasses();
@@ -51,9 +54,13 @@ const alertInfoToDiv = ((div: HTMLElement) => {
     });
 
     myObservable.subscribe((value: IConnectionStatus) => {
-        console.log(`myObservable: ${value}`);
+        console.log(`Renderer new connection-status: ${value}`);
         resetClasses();
         switch (value) {
+            case IConnectionStatus.ConnectingPrevious:
+                div.innerText = "Connecting previous connection ...";
+                div.classList.add("alert-info");
+                break;
             case IConnectionStatus.MobileToBackground:
                 div.innerText = "iPad is in background";
                 div.classList.add("alert-warning");
@@ -66,15 +73,25 @@ const alertInfoToDiv = ((div: HTMLElement) => {
             case IConnectionStatus.MobileConnectionLost:
                 div.innerText = "iPad lost";
                 div.classList.add("alert-danger");
-                // openQrCodeDialogue(appConnection);
-                ipcRenderer.sendSync(EVENT_OPEN_QR_CODE);
+                openQrCode();
                 break;
-            case IConnectionStatus.Connected:
+            case IConnectionStatus.DesktopConnectionLost:
+                div.innerText = "Desktop lost";
+                div.classList.add("alert-danger");
+                break;
+            case IConnectionStatus.DesktopConnectionSuccessIpadPairingRequired:
+                div.innerText = "Connected, time to sync iPad";
+                div.classList.add("alert-primary");
+                openQrCode();
+                break;
+            case IConnectionStatus.DesktopConnectionSuccessIpadPaired:
                 div.innerText = "Connected";
                 div.classList.add("alert-primary");
-                // openQrCodeDialogue(appConnection);
-                ipcRenderer.sendSync(EVENT_OPEN_QR_CODE);
-                // ipcRenderer.sendSync(EVENT_DESKTOP_TO_MOBILE, msgs);
+                clearAllInfosClasses();
+                break;
+            case IConnectionStatus.Connected:
+                div.innerText = "Connecting ...";
+                div.classList.add("alert-primary");
                 break;
             case IConnectionStatus.Disconnected:
                 div.innerText = "Disconnected ! Trying to reconnect ...";
@@ -105,10 +122,6 @@ const alertInfoToDiv = ((div: HTMLElement) => {
                 div.classList.add("alert-success");
                 clearAllInfosClasses();
                 ipcRenderer.sendSync(EVENT_CLOSE_QR_CODE);
-                // if (qrWin) {
-                //     qrWin.close();
-                //     qrWin = null;
-                // }
                 break;
             case IConnectionStatus.Failed:
                 div.innerText = "Connected Failed, please check your internet, reconnecting in a few ...";
@@ -120,39 +133,7 @@ const alertInfoToDiv = ((div: HTMLElement) => {
 
 myObservable.next(IConnectionStatus.Starting);
 
-/*
-ipcRenderer.on("message", (event: Electron.Event, arg: string) => {
-    console.log("ipcRenderer.on message ....."); // prints "ping"
-    console.log(arg); // prints "ping"
-    event.returnValue = "pong";
-});
-*/
 
-/*
-let qrWin: BrowserWindow = null;
-const openQrCodeDialogue = (conn: IConnection): void => {
-
-    if (qrWin) {
-        console.log(`qrWin: ${qrWin} && qrWin.isFocused(): ${qrWin.isFocused()}`);
-        // return;
-    }
-    const params = `scheme=${conn.scheme}&version=${conn.version}&host=${conn.host}&token=${conn.token}`;
-    const modalPath = path.join(`file://${__dirname}/qr.html?${params}`);
-    console.log(`modalPath: ${modalPath}`);
-    qrWin = new ElectronBrowserWindow({
-        alwaysOnTop: true,
-        frame: false,
-        height: 300 ,
-        resizable: false,
-        show: false,
-        width: 300,
-    });
-    qrWin.on("close", () => { qrWin = null; });
-    qrWin.loadURL(modalPath);
-    qrWin.show();
-    myObservable.next(IConnectionStatus.PairingInProgress);
-};
-*/
 const openExecJsDialogue = () => {
     const execPath = path.join(`file://${__dirname}/exec-js.html`);
     let execWin = new ElectronBrowserWindow({
