@@ -225,7 +225,6 @@ import {ipcMain} from "electron";
 import {
     APP_CONNECTION_STATUS, DESKTOP_CONNECTION_SUCCESS_IPAD_PAIRED,
     DESKTOP_CONNECTION_SUCCESS_IPAD_PAIRING_REQUIRED,
-    EVENT_CLOSE_QR_CODE,
     EVENT_CONNECTION_FAILURE,
     EVENT_DESKTOP_TO_MOBILE,
     EVENT_INIT_CONNECTION,
@@ -286,14 +285,16 @@ const removeSavedConnection = (cb: (error: any) => void) => {
     Storage.remove(key, cb);
 };
 
-
+/*
 ipcMain.on(EVENT_CLOSE_QR_CODE, (event: Electron.Event ) => {
     console.debug("main ${EVENT_CLOSE_QR_CODE}");
     dismissQrCode();
     event.returnValue = true;
 });
+*/
 
 const dismissQrCode = () => {
+    console.log(`dismissQrCode`);
     if (qrWin) {
         qrWin.close();
         qrWin = null;
@@ -355,20 +356,22 @@ const setupSocketForConnection = (c: IConnection) => {
                 mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.MobileIsForeground );
             }
             if ( data[0].name === MOBILE_CONNECTION_SUCCESS ) {
-                // myObservable.next(IConnectionStatus.PairingSuccess);
+                console.log(` • EVENT_MOBILE_TO_DESKTOP MOBILE_CONNECTION_SUCCESS , time to: dismissQrCode()`);
                 mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.PairingSuccess );
+                dismissQrCode();
             }
-
-            // s.emit("event_to_client", { hello: "world" });
         });
+
         socket.on("reconnect", () => {
             console.log("reconnect fired!");
             mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Reconnected );
         });
+
         socket.on("disconnect", (reason: string) => {
             console.log("disconnect, reason: ", reason);
             mainWindow.webContents.send(APP_CONNECTION_STATUS, IConnectionStatus.Disconnected );
         });
+
     });
 
 };
@@ -431,7 +434,7 @@ const openQrCodeDialogue = (conn: IConnection): void => {
     console.log(`openQrCodeDialogue` , conn);
     if (qrWin) {
         console.log(`qrWin: ${qrWin} && qrWin.isFocused(): ${qrWin.isFocused()}`);
-        // return;
+        return;
     }
     const params = `scheme=${conn.scheme}&version=${conn.version}&host=${conn.host}&token=${conn.token}`;
     const modalPath = path.join(`file://${__dirname}/qr.html?${params}`);

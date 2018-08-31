@@ -8,7 +8,6 @@ import * as path from "path";
 import {Subject} from "rxjs";
 import {
     APP_CONNECTION_STATUS,
-    EVENT_CLOSE_QR_CODE,
     EVENT_DESKTOP_TO_MOBILE,
     EVENT_INIT_CONNECTION,
     EVENT_OPEN_QR_CODE,
@@ -121,7 +120,7 @@ const alertInfoToDiv = ((div: HTMLElement) => {
                 div.innerText = "Ready to use";
                 div.classList.add("alert-success");
                 clearAllInfosClasses();
-                ipcRenderer.sendSync(EVENT_CLOSE_QR_CODE);
+                // ipcRenderer.sendSync(EVENT_CLOSE_QR_CODE);
                 break;
             case IConnectionStatus.Failed:
                 div.innerText = "Connected Failed, please check your internet, reconnecting in a few ...";

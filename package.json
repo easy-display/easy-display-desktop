@@ -1,6 +1,6 @@
 {
   "name": "easy-display-desktop",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Easy Display, Desktop written with Electron / Typescript",
   "main": "dist/main.js",
   "build": {
