@@ -10,7 +10,6 @@ import {
     APP_CONNECTION_STATUS,
     EVENT_DESKTOP_TO_MOBILE,
     EVENT_INIT_CONNECTION,
-    EVENT_OPEN_QR_CODE,
 } from "./constants";
 import {IConnectionStatus, IMessage} from "./types";
 // import BrowserWindow = electron.BrowserWindow;
@@ -42,9 +41,7 @@ const alertInfoToDiv = ((div: HTMLElement) => {
         });
     });
 
-    const openQrCode = () => {
-        ipcRenderer.sendSync(EVENT_OPEN_QR_CODE);
-    };
+
     const clearAllInfosClasses = (() => {
         delay(3000).then(() => {
             resetClasses();
@@ -72,7 +69,7 @@ const alertInfoToDiv = ((div: HTMLElement) => {
             case IConnectionStatus.MobileConnectionLost:
                 div.innerText = "iPad lost";
                 div.classList.add("alert-danger");
-                openQrCode();
+                // openQrCode();
                 break;
             case IConnectionStatus.DesktopConnectionLost:
                 div.innerText = "Desktop lost";
@@ -81,15 +78,15 @@ const alertInfoToDiv = ((div: HTMLElement) => {
             case IConnectionStatus.DesktopConnectionSuccessIpadPairingRequired:
                 div.innerText = "Connected, time to sync iPad";
                 div.classList.add("alert-primary");
-                openQrCode();
+                // openQrCode();
                 break;
             case IConnectionStatus.DesktopConnectionSuccessIpadPaired:
-                div.innerText = "Connected";
+                div.innerText = "Ready to use!";
                 div.classList.add("alert-primary");
                 clearAllInfosClasses();
                 break;
             case IConnectionStatus.Connected:
-                div.innerText = "Connecting ...";
+                div.innerText = "Connected to server";
                 div.classList.add("alert-primary");
                 break;
             case IConnectionStatus.Disconnected:

@@ -248,21 +248,20 @@ ipcMain.on(EVENT_DESKTOP_TO_MOBILE, (event: Electron.Event, msgs: [IMessage] ) =
     event.returnValue = true;
 });
 
-ipcMain.on(EVENT_OPEN_QR_CODE, (event: Electron.Event ) => {
-    // console.debug("main event_desktop_to_mobile msgs:", msgs);
-    openQrCodeDialogue(appConnection);
-    event.returnValue = true;
-});
 
 const isEmptyObject = (obj: any): boolean => {
     return Object.keys(obj).length === 0;
 };
 
-const key = "connection2";
+const storageKey = () => {
+    return `connection-${appVersion()}`;
+};
+
 
 ipcMain.on(EVENT_INIT_CONNECTION, (event: Electron.Event ) => {
 
-    Storage.get(key, (error, data) => {
+    const k = storageKey();
+    Storage.get(k, (error, data) => {
         if (error) {
             throw error;
         }
@@ -278,11 +277,11 @@ ipcMain.on(EVENT_INIT_CONNECTION, (event: Electron.Event ) => {
 });
 
 const saveConnection = (conn: IConnection, cb: (error: any) => void)  => {
-    Storage.set(key, conn, cb);
+    Storage.set(storageKey(), conn, cb);
 };
 
 const removeSavedConnection = (cb: (error: any) => void) => {
-    Storage.remove(key, cb);
+    Storage.remove(storageKey(), cb);
 };
 
 /*
@@ -309,9 +308,19 @@ ipcMain.on( SOCKET_CONNECTION_REQUEST, (event: Electron.Event, c: IConnection) =
 });
 */
 const setupSocketForConnection = (c: IConnection) => {
+    console.debug(" • setupSocketForConnection: ", c);
     const uri = `${c.scheme}://${c.host}/desktop/${c.version}?client_type=desktop&token=${c.token}`;
     socket = io.connect(uri);
     appConnection = c;
+
+    socket.on("error", (error) => {
+        console.log(error);
+    });
+
+    socket.on("connect_timeout", (timeout: number) => {
+        console.log(`connect_timeout: ${timeout}`);
+        failAndInitializeConnectionProcess();
+    });
 
     socket.on("connect", () => {
         console.debug(`main socket connect to server: SUCCESS, socket.connected: ${socket.connected}`);
@@ -333,10 +342,12 @@ const setupSocketForConnection = (c: IConnection) => {
 
             if (msgs[0].name === MOBILE_CONNECTION_LOST ) {
                 mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.MobileConnectionLost );
+                openQrCodeDialogue(appConnection);
             }
 
             if (msgs[0].name === DESKTOP_CONNECTION_SUCCESS_IPAD_PAIRING_REQUIRED ) {
                 mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.DesktopConnectionSuccessIpadPairingRequired );
+                openQrCodeDialogue(appConnection);
             }
 
             if (msgs[0].name === DESKTOP_CONNECTION_SUCCESS_IPAD_PAIRED ) {
@@ -377,15 +388,10 @@ const setupSocketForConnection = (c: IConnection) => {
 };
 
 
-
 const delay = (ms: number) => {
     return new Promise((resolve) => {
         return setTimeout(resolve, ms);
     });
-};
-
-const isDevel = (): boolean => {
-    return process.env.NODE_ENV === "development";
 };
 
 
@@ -399,7 +405,7 @@ let appConnection: IConnection;
 const initializeConnectionProcess = () => {
     initializeConnection((conn: IConnection) => {
         saveConnection(conn, () => {
-                setupSocketForConnection(conn);
+            setupSocketForConnection(conn);
         });
     });
 };
@@ -416,12 +422,16 @@ const initializeConnection = (success: (con: IConnection) => void ) => {
                 success(response.data as IConnection);
             }).catch((reason) => {
             console.error(reason);
-            mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Failed );
-            delay(3000).then(() => {
-                mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Reconnecting );
-                initializeConnectionProcess();
-            });
+            failAndInitializeConnectionProcess();
         });
+    });
+};
+
+const failAndInitializeConnectionProcess = () => {
+    mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Failed );
+    delay(3000).then(() => {
+        mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Reconnecting );
+        initializeConnectionProcess();
     });
 };
 
@@ -475,7 +485,7 @@ const connectionUrl = (): string => {
         case IApiEnvironmentEnum.Staging:
             return "https://api-staging.easydisplay.info/api/v1/connection";
         case IApiEnvironmentEnum.Development:
-            return "http://localhost:9000/api/v1/connection";
+            return "http://macbook-air.duckdns.org:9000/api/v1/connection";
     }
 };
 
