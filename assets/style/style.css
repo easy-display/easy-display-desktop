@@ -3,16 +3,25 @@ h1 {
 }
 
 .arrows-container {
-    width: 100%;
+    width: 60px;
     display: grid;
-    grid-template-rows: auto auto auto;
-    grid-template-columns: 100%;
-    grid-auto-flow: column;
+    grid-template-rows: 20px 20px 20px;
+    grid-auto-flow: row;
 }
 
-.arrows-container-line {
-    display: flex;
+.arrows-container-line-1-item {
+    /*background-color:   red;*/
+    display: inline-flex;
+    justify-content: center;
 }
+
+
+.arrows-container-line-2-items {
+    /*background-color: yellow;*/
+    display: inline-flex;
+    justify-content: space-between;
+}
+
 
 .address-bar-container{
     display: grid;
