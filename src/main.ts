@@ -229,7 +229,6 @@ import {
     EVENT_DESKTOP_TO_MOBILE,
     EVENT_INIT_CONNECTION,
     EVENT_MOBILE_TO_DESKTOP,
-    EVENT_OPEN_QR_CODE,
     EVENT_SERVER_TO_DESKTOP,
     INVALID_TOKEN,
     MOBILE_CONNECTION_LOST,
@@ -259,7 +258,7 @@ const storageKey = () => {
 
 
 ipcMain.on(EVENT_INIT_CONNECTION, (event: Electron.Event ) => {
-
+    console.log(`ipcMain.on: EVENT_INIT_CONNECTION`, event);
     const k = storageKey();
     Storage.get(k, (error, data) => {
         if (error) {
@@ -313,8 +312,8 @@ const setupSocketForConnection = (c: IConnection) => {
     socket = io.connect(uri);
     appConnection = c;
 
-    socket.on("error", (error) => {
-        console.log(error);
+    socket.on("error", (error: any) => {
+        console.log(`socket.on error:`, error);
     });
 
     socket.on("connect_timeout", (timeout: number) => {
@@ -346,12 +345,14 @@ const setupSocketForConnection = (c: IConnection) => {
             }
 
             if (msgs[0].name === DESKTOP_CONNECTION_SUCCESS_IPAD_PAIRING_REQUIRED ) {
-                mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.DesktopConnectionSuccessIpadPairingRequired );
+                mainWindow.webContents.send( APP_CONNECTION_STATUS,
+                    IConnectionStatus.DesktopConnectionSuccessIpadPairingRequired );
                 openQrCodeDialogue(appConnection);
             }
 
             if (msgs[0].name === DESKTOP_CONNECTION_SUCCESS_IPAD_PAIRED ) {
-                mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.DesktopConnectionSuccessIpadPaired );
+                mainWindow.webContents.send( APP_CONNECTION_STATUS,
+                    IConnectionStatus.DesktopConnectionSuccessIpadPaired );
             }
 
         });
