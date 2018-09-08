@@ -6,7 +6,7 @@
     <title>Easy Display</title>
     <link rel="stylesheet" href="./assets/style/style.css"/>
     <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="./node_modules/@fortawesome/fontawesome-free/css/all.css"/>
+    <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.css"/>
 
   </head>
   <body class="container">
@@ -18,26 +18,42 @@
         <button onclick="openUrl()" type="submit" class="btn btn-outline-primary">Go</button>
     </div>
 
-      <a href="javascript:void(0)" onclick="renderer.reload();">Reload</a>
-      <a href="javascript:void(0)" onclick="renderer.openExecJs();">Exec</a>
+
+
 
     <br/>
-    <div class="arrows-container">
-        <div class="arrows-container-line-1-item">
-            <a class="fa fa-arrow-up" href="javascript:void(0)" onclick="doScroll(0);"></a>
+    <div class="bottom-container">
+        <div class="arrows-container">
+            <div class="arrows-container-line-1-item">
+                <a class="fa fa-arrow-up" href="javascript:void(0)" onclick="doScroll(0);"></a>
+            </div>
+            <div class="arrows-container-line-2-items">
+                <a class="fa fa-arrow-left" href="javascript:void(0)" onclick="doScroll(270);"></a>
+                <a class="fa fa-arrow-right" href="javascript:void(0)" onclick="doScroll(90);"></a>
+            </div>
+            <div class="arrows-container-line-1-item">
+                <a class="fa fa-arrow-down" href="javascript:void(0)" onclick="doScroll(180);"></a>
+            </div>
         </div>
-        <div class="arrows-container-line-2-items">
-            <a class="fa fa-arrow-left" href="javascript:void(0)" onclick="doScroll(270);"></a>
-            <a class="fa fa-arrow-right" href="javascript:void(0)" onclick="doScroll(90);"></a>
+        <div class="">
+            <div class="">
+                <a class="fa fa-sync" href="javascript:void(0)" onclick="renderer.reload();"><span class="button-text">Reload</span></a>
+            </div>
+            <div class="">
+                <a class="fab fa-js-square" href="javascript:void(0)" onclick="renderer.openExecJs();"><span class="button-text">Exec JS</span></a>
+            </div>
         </div>
-        <div class="arrows-container-line-1-item">
-            <a class="fa fa-arrow-down" href="javascript:void(0)" onclick="doScroll(180);"></a>
+        <div class="">
+            <div class="">
+                <a class="fa fa-info" href="javascript:void(0)" onclick="doAbout();"><span class="button-text">About</span></a>
+            </div>
+            <div class="">
+                <a class="fab fa-osi" href="javascript:void(0)" onclick="doAbout();"><span class="button-text">3rd party licenses</span></a>
+            </div>
         </div>
+
+
     </div>
-
-    <br/>
-    <a href="javascript:void(0)" onclick="doAbout();">About</a>
-    <br/>
 
   </body>
 

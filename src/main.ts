@@ -64,7 +64,7 @@ function createWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     frame: false,
-    height: 300,
+    height: 240,
     resizable: false,
     show: false,
     width: 800,
@@ -458,6 +458,7 @@ const openQrCodeDialogue = (conn: IConnection): void => {
         resizable: false,
         show: false,
         width: 300,
+        icon: __dirname + '/app/assets/img/icon.png',
     });
     qrWin.on("close", () => { qrWin = null; });
     qrWin.loadURL(modalPath);
