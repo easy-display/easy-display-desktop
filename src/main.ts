@@ -452,7 +452,7 @@ const openQrCodeDialogue = (conn: IConnection): void => {
     // const ElectronBrowserWindow = electron.BrowserWindow;
     qrWin = new BrowserWindow({
         alwaysOnTop: true,
-        frame: false,
+        frame: true,
         height: 300 ,
         resizable: false,
         show: false,

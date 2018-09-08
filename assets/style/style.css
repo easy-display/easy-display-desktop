@@ -13,3 +13,16 @@ h1 {
 .arrows-container-line {
     display: flex;
 }
+
+.address-bar-container{
+    display: grid;
+    grid-template-columns: 625px 55px;
+    grid-gap: 15px 10px;
+}
+.address-bar-container input {
+
+}
+
+.address-bar-container button {
+
+}

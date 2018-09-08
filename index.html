@@ -13,15 +13,10 @@
 
   <div id="alert" class="alert" role="alert"></div>
 
-    <div class="mt-2">
-        <form id="url-form">
-            <div class="form-group">
-                <label for="url_input">URL:</label>
-                <input type="text" id="url_input" class="form-control"  name="url_name" value="https://stackoverflow.com/questions/26326296/changing-text-of-uibutton-programmatically-swift" size="80"/>
-            </div>
-        </form>
-        <button onclick="openUrl()" type="submit" class="btn btn-primary btn-block">Go</button>
-  </div>
+    <div class="address-bar-container">
+        <input type="text" id="url_input" class="form-control" placeholder="enter the address http:// ..." name="url_name" value="" size="80"/>
+        <button onclick="openUrl()" type="submit" class="btn btn-outline-primary">Go</button>
+    </div>
 
       <a href="javascript:void(0)" onclick="renderer.reload();">Reload</a>
       <a href="javascript:void(0)" onclick="renderer.openExecJs();">Exec</a>
@@ -29,14 +24,14 @@
     <br/>
     <div class="arrows-container">
         <div class="arrows-container-line">
-            <a class="fa fa-arrow-alt-circle-up" href="javascript:void(0)" onclick="doScroll(0);"></a>
+            <a class="fa fa-arrow-up" href="javascript:void(0)" onclick="doScroll(0);"></a>
         </div>
         <div class="arrows-container-line">
-            <a class="fa fa-arrow-alt-circle-left" href="javascript:void(0)" onclick="doScroll(270);"></a>
-            <a class="fa fa-arrow-alt-circle-right" href="javascript:void(0)" onclick="doScroll(90);"></a>
+            <a class="fa fa-arrow-left" href="javascript:void(0)" onclick="doScroll(270);"></a>
+            <a class="fa fa-arrow-right" href="javascript:void(0)" onclick="doScroll(90);"></a>
         </div>
         <div class="arrows-container-line">
-            <a class="fa fa-arrow-alt-circle-down" href="javascript:void(0)" onclick="doScroll(180);"></a>
+            <a class="fa fa-arrow-down" href="javascript:void(0)" onclick="doScroll(180);"></a>
         </div>
     </div>
 
