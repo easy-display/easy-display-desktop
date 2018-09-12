@@ -3,6 +3,7 @@
 // All of the Node.js APIs are available in this process.
 
 import electron = require("electron");
+import * as Logger from "electron-log";
 import {Promise} from "es6-promise";
 import * as path from "path";
 import {Subject} from "rxjs";
@@ -14,6 +15,13 @@ import {
 import {IConnectionStatus, IMessage} from "./types";
 // import BrowserWindow = electron.BrowserWindow;
 import ipcRenderer = electron.ipcRenderer;
+
+Logger.silly("silly EasyDislay Renderer");
+Logger.verbose("verbose EasyDislay Renderer");
+Logger.debug("debug EasyDislay Renderer");
+Logger.info("info EasyDislay Renderer");
+Logger.warn("warn EasyDislay Renderer");
+Logger.error("error EasyDislay Renderer");
 
 
 ipcRenderer.on(APP_CONNECTION_STATUS, (event: Electron.Event, connectionStatus: IConnectionStatus) => {
@@ -69,7 +77,6 @@ const alertInfoToDiv = ((div: HTMLElement) => {
             case IConnectionStatus.MobileConnectionLost:
                 div.innerText = "iPad lost";
                 div.classList.add("alert-danger");
-                // openQrCode();
                 break;
             case IConnectionStatus.DesktopConnectionLost:
                 div.innerText = "Desktop lost";
@@ -78,7 +85,6 @@ const alertInfoToDiv = ((div: HTMLElement) => {
             case IConnectionStatus.DesktopConnectionSuccessIpadPairingRequired:
                 div.innerText = "Connected, time to sync iPad";
                 div.classList.add("alert-primary");
-                // openQrCode();
                 break;
             case IConnectionStatus.DesktopConnectionSuccessIpadPaired:
                 div.innerText = "Ready to use!";

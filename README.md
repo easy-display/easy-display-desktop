@@ -66,3 +66,8 @@ https://steemit.com/education/@ryanbaer/getting-started-with-electron-a-basic-me
 
 
 
+to build the project: 
+
+```bash
+
+```

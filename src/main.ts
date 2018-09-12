@@ -5,20 +5,35 @@ import * as path from "path";
 let tray: Electron.Tray;
 let mainWindow: Electron.BrowserWindow;
 import * as Storage from "electron-json-storage";
+import * as Logger from "electron-log";
 import {Promise} from "es6-promise";
 import { Base64Icon as Base64Icon } from "./icons";
 
 
 
+
+
+// Same as for console transport
+Logger.transports.file.format = "{h}:{i}:{s}:{ms} {text}";
+Logger.transports.file.maxSize = 5 * 1024 * 1024;
+Logger.transports.file.level = "verbose";
+
+Logger.silly("silly EasyDislay main");
+Logger.verbose("verbose EasyDislay main");
+Logger.debug("debug EasyDislay main");
+Logger.info("info EasyDislay main");
+Logger.warn("warn EasyDislay main");
+Logger.error("error EasyDislay main");
+
 const dataPath = Storage.getDataPath();
-console.log(`electron-json-storage data-path: ${dataPath}`);
+Logger.debug(`electron-json-storage Storage.getDataPath(): ${dataPath}`);
 
 const showWindow = () => {
     const trayPos = tray.getBounds();
     const windowPos = mainWindow.getBounds();
     let x = 0;
     let y = 0;
-    console.log(`process.platform: ${process.platform}`) ;
+    Logger.debug(`process.platform: ${process.platform}`) ;
     if (process.platform === "darwin") {
         x = Math.round(trayPos.x + (trayPos.width / 2) - (windowPos.width / 2));
         y = Math.round(trayPos.y + trayPos.height);
@@ -34,7 +49,7 @@ const showWindow = () => {
 
 
 const toggleWindow = () => {
-    console.log(`mainWindow.isVisible(): ${mainWindow.isVisible()}`);
+    Logger.debug(`mainWindow.isVisible(): ${mainWindow.isVisible()}`);
     if (mainWindow.isVisible()) {
         mainWindow.hide();
     } else {
@@ -50,7 +65,7 @@ function createTray() {
     // our popup window
     tray.on("click", (event) => {
         toggleWindow();
-        console.log(`event.metaKey: ${event.metaKey}`);
+        Logger.debug(`event.metaKey: ${event.metaKey}`);
         // Show devtools when command clicked
         // if (mainWindow.isVisible() && process.defaultApp && event.metaKey) {
         //     mainWindow.webContents.openDevTools({mode: "undocked"});
@@ -61,12 +76,12 @@ function createTray() {
 
 function createWindow() {
 
-  // Create the browser window.
   mainWindow = new BrowserWindow({
     frame: false,
     height: 240,
+    // titleBarStyle: "hidden",
     resizable: false,
-    show: false,
+    show: true,
     width: 800,
   });
 
@@ -75,7 +90,7 @@ function createWindow() {
 
 
   // Open the DevTools.
-  console.log(`process.env.NODE_ENV: ${process.env.NODE_ENV}`);
+  Logger.debug(`process.env.NODE_ENV: ${process.env.NODE_ENV}`);
   if (process.env.NODE_ENV === "development")  {
     mainWindow.webContents.openDevTools();
   }
@@ -238,11 +253,13 @@ import {
 } from "./constants";
 
 import axios, {AxiosResponse} from "axios";
+
+import * as fs from "fs";
 import {IApiEnvironmentEnum, IConnection, IConnectionStatus, IMessage} from "./types";
 
 let socket: Socket;
 ipcMain.on(EVENT_DESKTOP_TO_MOBILE, (event: Electron.Event, msgs: [IMessage] ) => {
-    console.debug("main event_desktop_to_mobile msgs:", msgs);
+    Logger.debug("main event_desktop_to_mobile msgs:", msgs);
     socket.emit(EVENT_DESKTOP_TO_MOBILE, msgs );
     event.returnValue = true;
 });
@@ -258,7 +275,8 @@ const storageKey = () => {
 
 
 ipcMain.on(EVENT_INIT_CONNECTION, (event: Electron.Event ) => {
-    console.log(`ipcMain.on: EVENT_INIT_CONNECTION`, event);
+    Logger.debug(`ipcMain.on: EVENT_INIT_CONNECTION`, event);
+    Logger.debug(`connectionUrl for environmeent: ${environmeent()}`);
     const k = storageKey();
     Storage.get(k, (error, data) => {
         if (error) {
@@ -270,7 +288,7 @@ ipcMain.on(EVENT_INIT_CONNECTION, (event: Electron.Event ) => {
         } else {
             initializeConnectionProcess();
         }
-        console.log(data);
+        Logger.debug(data);
     });
 
 });
@@ -283,16 +301,9 @@ const removeSavedConnection = (cb: (error: any) => void) => {
     Storage.remove(storageKey(), cb);
 };
 
-/*
-ipcMain.on(EVENT_CLOSE_QR_CODE, (event: Electron.Event ) => {
-    console.debug("main ${EVENT_CLOSE_QR_CODE}");
-    dismissQrCode();
-    event.returnValue = true;
-});
-*/
 
 const dismissQrCode = () => {
-    console.log(`dismissQrCode`);
+    Logger.info(`dismissQrCode`);
     if (qrWin) {
         qrWin.close();
         qrWin = null;
@@ -300,34 +311,28 @@ const dismissQrCode = () => {
 };
 
 
-/*
-ipcMain.on( SOCKET_CONNECTION_REQUEST, (event: Electron.Event, c: IConnection) => {
-    console.debug(`main message SOCKET_CONNECTION_REQUEST: ${SOCKET_CONNECTION_REQUEST}:`, c);
-    connectSocketRequest(event, c);
-});
-*/
 const setupSocketForConnection = (c: IConnection) => {
-    console.debug(" • setupSocketForConnection: ", c);
+    Logger.debug(" • setupSocketForConnection: ", c);
     const uri = `${c.scheme}://${c.host}/desktop/${c.version}?client_type=desktop&token=${c.token}`;
     socket = io.connect(uri);
     appConnection = c;
 
     socket.on("error", (error: any) => {
-        console.log(`socket.on error:`, error);
+        Logger.error(`socket.on error:`, error);
     });
 
     socket.on("connect_timeout", (timeout: number) => {
-        console.log(`connect_timeout: ${timeout}`);
+        Logger.error(`connect_timeout: ${timeout}`);
         failAndInitializeConnectionProcess();
     });
 
     socket.on("connect", () => {
-        console.debug(`main socket connect to server: SUCCESS, socket.connected: ${socket.connected}`);
+        Logger.debug(`main socket connect to server: SUCCESS, socket.connected: ${socket.connected}`);
         mainWindow.webContents.send(APP_CONNECTION_STATUS, IConnectionStatus.Connected );
 
         socket.on(EVENT_SERVER_TO_DESKTOP, (msgs: IMessage[]) => {
             const msg = msgs[0];
-            console.log(`${EVENT_SERVER_TO_DESKTOP}`, msg.name);
+            Logger.debug(`${EVENT_SERVER_TO_DESKTOP}`, msg.name);
             if (msg.name === EVENT_CONNECTION_FAILURE ) {
                 if (msgs[0].dataString === INVALID_TOKEN) {
                     mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Connecting);
@@ -358,8 +363,8 @@ const setupSocketForConnection = (c: IConnection) => {
         });
 
         socket.on(EVENT_MOBILE_TO_DESKTOP, (data: any) => {
-            console.log(` •EVENT_MOBILE_TO_DESKTOP: ${EVENT_MOBILE_TO_DESKTOP} : `, data);
-            // console.log(`${EVENT_MOBILE_TO_DESKTOP} > connection_success,  time to dismiss qr code`);
+            Logger.debug(` •EVENT_MOBILE_TO_DESKTOP: ${EVENT_MOBILE_TO_DESKTOP} : `, data);
+            // log(`${EVENT_MOBILE_TO_DESKTOP} > connection_success,  time to dismiss qr code`);
 
             if ( data[0].name === MOBILE_TO_BACKGROUND ) {
                 mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.MobileToBackground );
@@ -368,19 +373,19 @@ const setupSocketForConnection = (c: IConnection) => {
                 mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.MobileIsForeground );
             }
             if ( data[0].name === MOBILE_CONNECTION_SUCCESS ) {
-                console.log(` • EVENT_MOBILE_TO_DESKTOP MOBILE_CONNECTION_SUCCESS , time to: dismissQrCode()`);
+                Logger.debug(` • EVENT_MOBILE_TO_DESKTOP MOBILE_CONNECTION_SUCCESS , time to: dismissQrCode()`);
                 mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.PairingSuccess );
                 dismissQrCode();
             }
         });
 
         socket.on("reconnect", () => {
-            console.log("reconnect fired!");
+            Logger.debug("reconnect fired!");
             mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Reconnected );
         });
 
         socket.on("disconnect", (reason: string) => {
-            console.log("disconnect, reason: ", reason);
+            Logger.debug("disconnect, reason: ", reason);
             mainWindow.webContents.send(APP_CONNECTION_STATUS, IConnectionStatus.Disconnected );
         });
 
@@ -412,17 +417,17 @@ const initializeConnectionProcess = () => {
 };
 
 const initializeConnection = (success: (con: IConnection) => void ) => {
-    console.log(`Renderer initializeConnection: connectionUrl: ${connectionUrl()}`);
+    Logger.info(`Renderer initializeConnection: ${environmeent()} connectionUrl: ${connectionUrl()}`);
     mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Connecting );
     delay(1000).then(() => {
         axios.post(connectionUrl(), { version: appVersion() })
             .then((response: AxiosResponse<IConnection>) => {
-                console.info(`Renderer initializeConnection success:`, response.data);
-                console.log(`Renderer initializeConnection response.headers:`, response.headers);
+                Logger.info(`Renderer initializeConnection success:`, response.data);
+                Logger.debug(`Renderer initializeConnection response.headers:`, response.headers);
                 // connectSocket(response.data as IConnection);
                 success(response.data as IConnection);
             }).catch((reason) => {
-            console.error(reason);
+            Logger.error(reason);
             failAndInitializeConnectionProcess();
         });
     });
@@ -442,23 +447,22 @@ const failAndInitializeConnectionProcess = () => {
 let qrWin: BrowserWindow = null;
 
 const openQrCodeDialogue = (conn: IConnection): void => {
-    console.log(`openQrCodeDialogue` , conn);
+    Logger.info(`openQrCodeDialogue` , conn);
     if (qrWin) {
-        console.log(`qrWin: ${qrWin} && qrWin.isFocused(): ${qrWin.isFocused()}`);
+        Logger.debug(`qrWin: ${qrWin} && qrWin.isFocused(): ${qrWin.isFocused()}`);
         return;
     }
     const params = `scheme=${conn.scheme}&version=${conn.version}&host=${conn.host}&token=${conn.token}`;
     const modalPath = path.join(`file://${__dirname}/qr.html?${params}`);
-    console.log(`modalPath: ${modalPath}`);
+    Logger.debug(`modalPath: ${modalPath}`);
     // const ElectronBrowserWindow = electron.BrowserWindow;
     qrWin = new BrowserWindow({
         alwaysOnTop: true,
-        frame: true,
+        frame: false,
         height: 300 ,
         resizable: false,
         show: false,
         width: 300,
-        icon: __dirname + '/app/assets/img/icon.png',
     });
     qrWin.on("close", () => { qrWin = null; });
     qrWin.loadURL(modalPath);
@@ -469,18 +473,18 @@ const openQrCodeDialogue = (conn: IConnection): void => {
 
 
 const environmeent = (): IApiEnvironmentEnum =>  {
-    if (process.env.NODE_ENV === "production") {
-        return IApiEnvironmentEnum.Production;
+    if (process.env.NODE_ENV === "development") {
+        return IApiEnvironmentEnum.Development;
     } else if (process.env.NODE_ENV === "staging") {
         return IApiEnvironmentEnum.Staging;
     } else {
-        // return IApiEnvironmentEnum.Staging;
-        return IApiEnvironmentEnum.Development;
+        return IApiEnvironmentEnum.Production;
     }
 };
 
 
 const connectionUrl = (): string => {
+    Logger.info(`connectionUrl for environmeent: ${environmeent}`);
     switch (environmeent()) {
         case IApiEnvironmentEnum.Production:
             return "https://api-production.easydisplay.info/api/v1/connection";
