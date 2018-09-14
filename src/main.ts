@@ -11,6 +11,8 @@ import { Base64Icon as Base64Icon } from "./icons";
 
 
 
+// hide the dock icon
+app.dock.hide();
 
 
 // Same as for console transport
@@ -43,6 +45,10 @@ const showWindow = () => {
     }
 
     mainWindow.setPosition(x, y, false);
+    mainWindow.setAlwaysOnTop(true, "floating");
+    mainWindow.setVisibleOnAllWorkspaces(true);
+    mainWindow.setFullScreenable(false);
+
     mainWindow.show();
     mainWindow.focus();
 };
@@ -79,7 +85,7 @@ function createTray() {
 
         Logger.debug(`Tray on right-click event.metaKey: ${event.metaKey}`);
 
-        if (connectionStatus !== IConnectionStatus.DesktopConnectionSuccessIpadPaired) {
+        if (optionsWin && connectionStatus !== IConnectionStatus.DesktopConnectionSuccessIpadPaired) {
             optionsWin.hide();
             return;
         }
@@ -96,7 +102,8 @@ function createTray() {
             frame: false,
             height: 100 ,
             resizable: false,
-            show: true,
+            show: false,
+            type: "toolbar",
             width: 100,
         });
 
@@ -117,6 +124,11 @@ function createTray() {
 
         optionsWin.on("close", () => { qrWin = null; });
         optionsWin.loadURL(modalPath);
+
+        optionsWin.setAlwaysOnTop(true, "floating");
+        optionsWin.setVisibleOnAllWorkspaces(true);
+        optionsWin.setFullScreenable(false);
+
         optionsWin.show();
 
     });
@@ -411,6 +423,9 @@ const setupSocketForConnection = (c: IConnection) => {
 
             if (msgs[0].name === DESKTOP_CONNECTION_SUCCESS_IPAD_PAIRED ) {
                 updateConnectionStatus(IConnectionStatus.DesktopConnectionSuccessIpadPaired);
+                delay(5000).then(() => {
+                   mainWindow.hide();
+                });
             }
 
         });

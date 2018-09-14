@@ -14,7 +14,7 @@
   <div id="alert" class="alert" role="alert"></div>
 
     <div class="address-bar-container">
-        <input type="text" id="url_input" class="form-control" placeholder="enter the address http:// ..." name="url_name" value="" size="80"/>
+        <input onchange="detectEnter()" type="text" id="url-input" class="form-control" placeholder="enter the address http:// ..." name="url_name" value="" size="80"/>
         <button onclick="openUrl()" type="submit" class="btn btn-outline-primary">Go</button>
     </div>
 
@@ -72,7 +72,8 @@
 
     const openUrl = () => {
       // const url = document.getElementById("url_input").value;
-      const url = $("#url_input").val();
+      console.log("index.html openUrl ...");
+      const url = $("#url-input").val();
       renderer.openUrl(url);
     };
 
@@ -83,11 +84,15 @@
     const doAbout = () => {
         renderer.about();
     };
+    //
+    // $("#url-form").submit(function() {
+    //     openUrl();
+    //     // return false;
+    // });
 
-    $("#url-form").submit(function() {
-        openUrl();
-        return false;
-    });
+   const detectEnter = () => {
+       openUrl();
+   };
 
 
   </script>
