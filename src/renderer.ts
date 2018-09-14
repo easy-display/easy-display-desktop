@@ -171,11 +171,7 @@ module.exports = {
     about: () => {
         openAboutDialogue();
     },
-    //
-    // appVersion: () => {
-    //     return appVersion();
-    // },
-    //
+
     createNewConnection: () => {
         // initializeConnection();
         ipcRenderer.send(EVENT_INIT_CONNECTION);
@@ -188,6 +184,7 @@ module.exports = {
     openExecJs: () => {
         openExecJsDialogue();
     },
+
     openUrl: (url: string) => {
         console.log(`openUrl: ${url}`);
         const msgs: [IMessage] = [{
@@ -197,6 +194,7 @@ module.exports = {
         }];
         ipcRenderer.sendSync(EVENT_DESKTOP_TO_MOBILE, msgs);
     },
+
     reload: () => {
         const msgs: [IMessage]  = [{
             dataNumber: 0,
@@ -213,7 +211,6 @@ module.exports = {
             dataString: "" ,
             name: "scroll",
         }];
-        // SocketManager.socket.emit("event_desktop_to_mobile", { messages: msgs } );
         ipcRenderer.sendSync(EVENT_DESKTOP_TO_MOBILE, msgs);
     },
 

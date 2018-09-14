@@ -57,6 +57,8 @@ const toggleWindow = () => {
     }
 };
 
+let optionsWin: BrowserWindow = null;
+
 function createTray() {
     const icon = nativeImage.createFromDataURL(Base64Icon);
     tray = new Tray(icon);
@@ -65,11 +67,58 @@ function createTray() {
     // our popup window
     tray.on("click", (event) => {
         toggleWindow();
-        Logger.debug(`event.metaKey: ${event.metaKey}`);
+        Logger.debug(`Tray on click event.metaKey: ${event.metaKey}`);
         // Show devtools when command clicked
         // if (mainWindow.isVisible() && process.defaultApp && event.metaKey) {
         //     mainWindow.webContents.openDevTools({mode: "undocked"});
         // }
+    });
+
+
+    tray.on("right-click", (event) => {
+
+        Logger.debug(`Tray on right-click event.metaKey: ${event.metaKey}`);
+
+        if (connectionStatus !== IConnectionStatus.DesktopConnectionSuccessIpadPaired) {
+            optionsWin.hide();
+            return;
+        }
+
+        if (optionsWin && optionsWin.isVisible()) {
+            optionsWin.hide();
+            return;
+        }
+        const modalPath = path.join(`file://${__dirname}/options.html`);
+        Logger.debug(`options.html modalPath: ${modalPath}`);
+
+        optionsWin = new BrowserWindow({
+            alwaysOnTop: true,
+            frame: false,
+            height: 100 ,
+            resizable: false,
+            show: true,
+            width: 100,
+        });
+
+        const trayPos = tray.getBounds();
+        const windowPos = optionsWin.getBounds();
+        let x = 0;
+        let y = 0;
+        Logger.debug(`process.platform: ${process.platform}`) ;
+        if (process.platform === "darwin") {
+            x = Math.round(trayPos.x + (trayPos.width / 2) - (windowPos.width / 2));
+            y = Math.round(trayPos.y + trayPos.height);
+        } else {
+            x = Math.round(trayPos.x + (trayPos.width / 2) - (windowPos.width / 2));
+            y = Math.round(trayPos.y + trayPos.height * 10);
+        }
+
+        optionsWin.setPosition(x, y, false);
+
+        optionsWin.on("close", () => { qrWin = null; });
+        optionsWin.loadURL(modalPath);
+        optionsWin.show();
+
     });
 
 }
@@ -254,8 +303,10 @@ import {
 
 import axios, {AxiosResponse} from "axios";
 
-import * as fs from "fs";
+
 import {IApiEnvironmentEnum, IConnection, IConnectionStatus, IMessage} from "./types";
+
+let connectionStatus: IConnectionStatus;
 
 let socket: Socket;
 ipcMain.on(EVENT_DESKTOP_TO_MOBILE, (event: Electron.Event, msgs: [IMessage] ) => {
@@ -273,6 +324,11 @@ const storageKey = () => {
     return `connection-${appVersion()}`;
 };
 
+const updateConnectionStatus = (c: IConnectionStatus) => {
+    connectionStatus = c;
+    mainWindow.webContents.send(APP_CONNECTION_STATUS, connectionStatus);
+};
+
 
 ipcMain.on(EVENT_INIT_CONNECTION, (event: Electron.Event ) => {
     Logger.debug(`ipcMain.on: EVENT_INIT_CONNECTION`, event);
@@ -283,7 +339,7 @@ ipcMain.on(EVENT_INIT_CONNECTION, (event: Electron.Event ) => {
             throw error;
         }
         if (data != null && !isEmptyObject(data)) {
-            mainWindow.webContents.send(APP_CONNECTION_STATUS, IConnectionStatus.ConnectingPrevious );
+            updateConnectionStatus(IConnectionStatus.ConnectingPrevious);
             setupSocketForConnection(data as IConnection);
         } else {
             initializeConnectionProcess();
@@ -328,36 +384,33 @@ const setupSocketForConnection = (c: IConnection) => {
 
     socket.on("connect", () => {
         Logger.debug(`main socket connect to server: SUCCESS, socket.connected: ${socket.connected}`);
-        mainWindow.webContents.send(APP_CONNECTION_STATUS, IConnectionStatus.Connected );
-
+        updateConnectionStatus(IConnectionStatus.Connected );
         socket.on(EVENT_SERVER_TO_DESKTOP, (msgs: IMessage[]) => {
             const msg = msgs[0];
             Logger.debug(`${EVENT_SERVER_TO_DESKTOP}`, msg.name);
             if (msg.name === EVENT_CONNECTION_FAILURE ) {
                 if (msgs[0].dataString === INVALID_TOKEN) {
-                    mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Connecting);
+                    updateConnectionStatus(IConnectionStatus.Connecting );
                     removeSavedConnection(() => {
                         initializeConnectionProcess();
                     });
                 } else {
-                    mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.DesktopConnectionLost);
+                    updateConnectionStatus(IConnectionStatus.DesktopConnectionLost );
                 }
             }
 
             if (msgs[0].name === MOBILE_CONNECTION_LOST ) {
-                mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.MobileConnectionLost );
+                updateConnectionStatus(IConnectionStatus.MobileConnectionLost);
                 openQrCodeDialogue(appConnection);
             }
 
             if (msgs[0].name === DESKTOP_CONNECTION_SUCCESS_IPAD_PAIRING_REQUIRED ) {
-                mainWindow.webContents.send( APP_CONNECTION_STATUS,
-                    IConnectionStatus.DesktopConnectionSuccessIpadPairingRequired );
+                updateConnectionStatus(IConnectionStatus.DesktopConnectionSuccessIpadPairingRequired);
                 openQrCodeDialogue(appConnection);
             }
 
             if (msgs[0].name === DESKTOP_CONNECTION_SUCCESS_IPAD_PAIRED ) {
-                mainWindow.webContents.send( APP_CONNECTION_STATUS,
-                    IConnectionStatus.DesktopConnectionSuccessIpadPaired );
+                updateConnectionStatus(IConnectionStatus.DesktopConnectionSuccessIpadPaired);
             }
 
         });
@@ -367,26 +420,26 @@ const setupSocketForConnection = (c: IConnection) => {
             // log(`${EVENT_MOBILE_TO_DESKTOP} > connection_success,  time to dismiss qr code`);
 
             if ( data[0].name === MOBILE_TO_BACKGROUND ) {
-                mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.MobileToBackground );
+                updateConnectionStatus(IConnectionStatus.MobileToBackground);
             }
             if ( data[0].name === MOBILE_IS_FOREGROUND ) {
-                mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.MobileIsForeground );
+                updateConnectionStatus(IConnectionStatus.MobileIsForeground);
             }
             if ( data[0].name === MOBILE_CONNECTION_SUCCESS ) {
                 Logger.debug(` • EVENT_MOBILE_TO_DESKTOP MOBILE_CONNECTION_SUCCESS , time to: dismissQrCode()`);
-                mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.PairingSuccess );
+                updateConnectionStatus(IConnectionStatus.PairingSuccess);
                 dismissQrCode();
             }
         });
 
         socket.on("reconnect", () => {
             Logger.debug("reconnect fired!");
-            mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Reconnected );
+            updateConnectionStatus(IConnectionStatus.Reconnected);
         });
 
         socket.on("disconnect", (reason: string) => {
             Logger.debug("disconnect, reason: ", reason);
-            mainWindow.webContents.send(APP_CONNECTION_STATUS, IConnectionStatus.Disconnected );
+            updateConnectionStatus(IConnectionStatus.Disconnected);
         });
 
     });
@@ -418,7 +471,7 @@ const initializeConnectionProcess = () => {
 
 const initializeConnection = (success: (con: IConnection) => void ) => {
     Logger.info(`Renderer initializeConnection: ${environmeent()} connectionUrl: ${connectionUrl()}`);
-    mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Connecting );
+    updateConnectionStatus(IConnectionStatus.Connecting);
     delay(1000).then(() => {
         axios.post(connectionUrl(), { version: appVersion() })
             .then((response: AxiosResponse<IConnection>) => {
@@ -434,9 +487,9 @@ const initializeConnection = (success: (con: IConnection) => void ) => {
 };
 
 const failAndInitializeConnectionProcess = () => {
-    mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Failed );
+    updateConnectionStatus(IConnectionStatus.Failed);
     delay(3000).then(() => {
-        mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.Reconnecting );
+        updateConnectionStatus(IConnectionStatus.Reconnecting);
         initializeConnectionProcess();
     });
 };
@@ -467,8 +520,7 @@ const openQrCodeDialogue = (conn: IConnection): void => {
     qrWin.on("close", () => { qrWin = null; });
     qrWin.loadURL(modalPath);
     qrWin.show();
-    // myObservable.next(IConnectionStatus.PairingInProgress);
-    mainWindow.webContents.send( APP_CONNECTION_STATUS, IConnectionStatus.PairingInProgress );
+    updateConnectionStatus(IConnectionStatus.PairingInProgress);
 };
 
 

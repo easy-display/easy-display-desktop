@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Options</title>
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/all.css"/>
+    <link rel="stylesheet" href="../assets/style/style.css"/>
+</head>
+
+<body>
+
+<br/>
+<div id="options">
+    <div>
+        <a class="fa fa-sync" href="javascript:void(0)" onclick="reload();"><span class="button-text">Reload</span></a>
+    </div>
+</div>
+
+
+<script>window.$ = window.jQuery = require('jquery');</script>
+
+<script>
+    const renderer = require('./renderer.js');
+    const reload = () => {
+        require('electron').remote.getCurrentWindow().hide();
+        renderer.reload();
+    }
+</script>
+
+</body>
+</html>
