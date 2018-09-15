@@ -325,6 +325,7 @@ ipcMain.on(EVENT_DESKTOP_TO_MOBILE, (event: Electron.Event, msgs: [IMessage] ) =
     Logger.debug("main event_desktop_to_mobile msgs:", msgs);
     socket.emit(EVENT_DESKTOP_TO_MOBILE, msgs );
     event.returnValue = true;
+    hideIn5Seconds();
 });
 
 
@@ -423,9 +424,7 @@ const setupSocketForConnection = (c: IConnection) => {
 
             if (msgs[0].name === DESKTOP_CONNECTION_SUCCESS_IPAD_PAIRED ) {
                 updateConnectionStatus(IConnectionStatus.DesktopConnectionSuccessIpadPaired);
-                delay(5000).then(() => {
-                   mainWindow.hide();
-                });
+                hideIn5Seconds();
             }
 
         });
@@ -461,6 +460,12 @@ const setupSocketForConnection = (c: IConnection) => {
 
 };
 
+
+const hideIn5Seconds = () => {
+    delay(5000).then(() => {
+        mainWindow.hide();
+    });
+};
 
 const delay = (ms: number) => {
     return new Promise((resolve) => {
