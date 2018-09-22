@@ -19,11 +19,15 @@
       "index.html",
       "assets/**/*"
     ],
+    "mac": {
+      "appId": "info.easydisplay.macos",
+      "identity": "MOH OMAR TILLAWY (6P7N34Q286)",
+      "icon": "build/logo.icns"
+    },
     "mas": {
       "appId": "info.easydisplay.macos",
       "identity": "MOH OMAR TILLAWY (6P7N34Q286)",
       "category": "Utility",
-      "icon": "assets/icons/mac/logo.icns",
       "type": "distribution"
     }
   },
@@ -35,7 +39,7 @@
     "start": "npm run build && ./node_modules/.bin/electron --inspect-brk=49492 ./dist/main.js",
     "pack": "electron-builder --dir",
     "clean-dist": "rm -rf build/*",
-    "dist": "npm run clean-dist; npm run build; electron-builder --macos",
+    "dist": "npm run clean-dist; npm run build; cp assets/icons/mac/logo.icns build/; electron-builder --macos",
     "dev-dist": "CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder"
   },
   "repository": "https://github.com/electron/electron-quick-start-typescript",

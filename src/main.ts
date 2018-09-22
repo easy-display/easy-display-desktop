@@ -533,6 +533,7 @@ const openQrCodeDialogue = (conn: IConnection): void => {
         alwaysOnTop: true,
         frame: false,
         height: 300 ,
+        icon: path.join(__dirname, "assets/icons/png/64x64.png"),
         resizable: false,
         show: false,
         width: 300,
