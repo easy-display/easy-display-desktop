@@ -41,7 +41,8 @@
     "clean-dist": "rm -rf build/*",
     "dist": "npm run clean-dist; npm run build; cp assets/icons/mac/logo.icns build/; electron-builder --macos",
     "dev-dist": "CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder",
-    "reset_storage": "rm -f ~/Library/Application\\ Support/Electron/storage/*;"
+    "reset_storage": "rm -f ~/Library/Application\\ Support/Electron/storage/*;",
+    "reset-downloaded-electron-zip": "rm -f ~/Library/Caches/electron/*"
   },
   "repository": "https://github.com/electron/electron-quick-start-typescript",
   "keywords": [
