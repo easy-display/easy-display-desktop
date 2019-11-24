@@ -22,7 +22,7 @@
 
 
     <br/>
-    <div class="bottom-container">
+    <div class="middle-container">
         <div class="arrows-container">
             <div class="arrows-container-line-1-item">
                 <a class="fa fa-arrow-up" href="javascript:void(0)" onclick="doScroll(0);"></a>
@@ -37,23 +37,22 @@
         </div>
         <div class="">
             <div class="">
-                <a class="fa fa-sync" href="javascript:void(0)" onclick="renderer.reload();"><span class="button-text">Reload</span></a>
+                <a class="btn btn-sm btn-outline-primary fa fa-sync" href="javascript:void(0)" onclick="renderer.reload();"><span class="button-text">Reload</span></a>
             </div>
             <div class="">
-                <a class="fab fa-js-square" href="javascript:void(0)" onclick="renderer.openExecJs();"><span class="button-text">Exec JS</span></a>
+                <a class="btn btn-sm btn-outline-primary fab fa-js-square" href="javascript:void(0)" onclick="renderer.openExecJs();"><span class="button-text">Exec JS</span></a>
             </div>
         </div>
-        <div class="">
-            <div class="">
-                <a class="fa fa-info" href="javascript:void(0)" onclick="doAbout();"><span class="button-text">About</span></a>
-            </div>
-            <div class="">
-                <a class="fab fa-osi" href="javascript:void(0)" onclick="doAbout();"><span class="button-text">3rd party licenses</span></a>
-            </div>
-        </div>
-
 
     </div>
+
+    <div class="fixed-bottom">
+        <div class="float-right ">
+            <a class="fa fa-info" href="javascript:void(0)" onclick="doAbout();"><span class="button-text"></span></a>
+            <a class="fab fa-osi" href="javascript:void(0)" onclick="doThirdPary();"><span class="button-text"></span></a>
+        </div>
+    </div>
+
 
   </body>
 
@@ -83,6 +82,10 @@
 
     const doAbout = () => {
         renderer.about();
+    };
+
+    const doThirdPary = () => {
+        renderer.thirdPartyLicense();
     };
     //
     // $("#url-form").submit(function() {

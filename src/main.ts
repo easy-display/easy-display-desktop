@@ -1,5 +1,5 @@
 import { app, BrowserWindow } from "electron";
-import { Menu, nativeImage , Tray} from "electron";
+import { dialog, Menu , nativeImage, Tray} from "electron";
 import * as os from "os";
 import * as path from "path";
 let tray: Electron.Tray;
@@ -8,7 +8,6 @@ import * as Storage from "electron-json-storage";
 import * as Logger from "electron-log";
 import {Promise} from "es6-promise";
 import { Base64Icon as Base64Icon } from "./icons";
-
 
 
 // hide the dock icon
@@ -300,7 +299,7 @@ import Socket = SocketIOClient.Socket;
 import {ipcMain} from "electron";
 import {
     APP_CONNECTION_STATUS, DESKTOP_CONNECTION_SUCCESS_IPAD_PAIRED,
-    DESKTOP_CONNECTION_SUCCESS_IPAD_PAIRING_REQUIRED,
+    DESKTOP_CONNECTION_SUCCESS_IPAD_PAIRING_REQUIRED, EVALUATE_JS_ERROR, EVALUATE_JS_OUTPUT,
     EVENT_CONNECTION_FAILURE,
     EVENT_DESKTOP_TO_MOBILE,
     EVENT_INIT_CONNECTION,
@@ -322,7 +321,7 @@ let connectionStatus: IConnectionStatus;
 
 let socket: Socket;
 ipcMain.on(EVENT_DESKTOP_TO_MOBILE, (event: Electron.Event, msgs: [IMessage] ) => {
-    Logger.debug("main event_desktop_to_mobile msgs:", msgs);
+    Logger.debug(" • main EVENT_DESKTOP_TO_MOBILE msgs:", msgs);
     socket.emit(EVENT_DESKTOP_TO_MOBILE, msgs );
     event.returnValue = true;
     hideIn5Seconds();
@@ -430,9 +429,26 @@ const setupSocketForConnection = (c: IConnection) => {
         });
 
         socket.on(EVENT_MOBILE_TO_DESKTOP, (data: any) => {
-            Logger.debug(` •EVENT_MOBILE_TO_DESKTOP: ${EVENT_MOBILE_TO_DESKTOP} : `, data);
+            Logger.log(` • EVENT_MOBILE_TO_DESKTOP: ${EVENT_MOBILE_TO_DESKTOP} : `, data);
             // log(`${EVENT_MOBILE_TO_DESKTOP} > connection_success,  time to dismiss qr code`);
 
+            if ( data[0].name === EVALUATE_JS_ERROR ) {
+                dialog.showMessageBox({
+                    detail: data[0].dataString,
+                    message: "Error:",
+                    title: "Exec-JS",
+                    type: "error",
+                });
+            }
+
+            if ( data[0].name === EVALUATE_JS_OUTPUT ) {
+                dialog.showMessageBox({
+                        detail: data[0].dataString,
+                        message: "Output:",
+                        title: "Exec-JS",
+                        type: "info",
+                    });
+            }
             if ( data[0].name === MOBILE_TO_BACKGROUND ) {
                 updateConnectionStatus(IConnectionStatus.MobileToBackground);
             }
@@ -514,8 +530,6 @@ const failAndInitializeConnectionProcess = () => {
     });
 };
 
-// import electron = require("electron");
-// import { BrowserWindow } from "electron";
 
 let qrWin: BrowserWindow = null;
 
@@ -557,7 +571,7 @@ const environmeent = (): IApiEnvironmentEnum =>  {
 
 
 const connectionUrl = (): string => {
-    Logger.info(`connectionUrl for environmeent: ${environmeent}`);
+    Logger.info(`connectionUrl for environmeent: ${environmeent()}`);
     switch (environmeent()) {
         case IApiEnvironmentEnum.Production:
             return "https://api-production.easydisplay.info/api/v1/connection";

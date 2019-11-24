@@ -162,6 +162,21 @@ const openAboutDialogue = () => {
 
 
 
+const openThirdPartyLicenses = () => {
+    const htmlPath = path.join(`file://${__dirname}/third-party.html`);
+    let thridPartyWin = new ElectronBrowserWindow({
+        alwaysOnTop: true,
+        height: 300 ,
+        width: 300,
+    });
+    thridPartyWin.on("close", () => { thridPartyWin = null; });
+    thridPartyWin.loadURL(htmlPath);
+    thridPartyWin.show();
+};
+
+
+
+
 module.exports = {
 
     bindHtmlElementToConnectionStatus: (div: HTMLElement) => {
@@ -170,6 +185,10 @@ module.exports = {
 
     about: () => {
         openAboutDialogue();
+    },
+
+    thirdPartyLicense: () => {
+        openThirdPartyLicenses();
     },
 
     createNewConnection: () => {

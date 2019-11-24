@@ -29,3 +29,8 @@ export const EVENT_INIT_CONNECTION = "event-init-connection";
 export const MOBILE_TO_BACKGROUND = "mobile-to-backgound";
 
 export const MOBILE_IS_FOREGROUND = "mobile-is-foreground";
+
+export const EVALUATE_JS = "evaluate_js";
+
+export const EVALUATE_JS_OUTPUT = "evaluate_js_output";
+export const EVALUATE_JS_ERROR = "evaluate_js_error";

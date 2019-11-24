@@ -13,11 +13,12 @@
 <div class="mt-2">
     <form>
         <div class="form-group">
-            <label for="javascript_textarea">JS:</label>
-            <textarea class="form-control"  rows="4" cols="50" id="javascript_textarea" name="javascript_name">
-var s = document.getElementsByClassName('topbar-images');
-s[0].remove();
-            </textarea>
+            <label for="javascript_textarea">Javascript:</label>
+            <textarea class="form-control"
+                      rows="4" cols="50"
+                      id="javascript_textarea"
+                      name="javascript_name"
+                      placeholder="var s = document.getElementsByClassName('topbar-images');// etc..."></textarea>
         </div>
     </form>
     <button onclick="evaluateJavascript()" type="submit" class="btn btn-primary btn-block">Evaluate Javascript</button>
@@ -27,15 +28,18 @@ s[0].remove();
 
 <script>
 
-    const EVENT_DESKTOP_TO_MOBILE =  require("./constants").EVENT_DESKTOP_TO_MOBILE;
+    const EVALUATE_JS = require("./constants").EVALUATE_JS;
+
+    const EVENT_DESKTOP_TO_MOBILE = require("./constants").EVENT_DESKTOP_TO_MOBILE;
 
     function evaluateJavascript(){
         const js = document.getElementById("javascript_textarea").value;
+        console.debug(`evaluateJavascript: ${js}`);
         const {ipcRenderer} = require('electron');
         const msgs= [{
-            dataNumber: 0 ,
+            dataNumber: 0,
             dataString: js,
-            name: "evaluate_js",
+            name: EVALUATE_JS,
         }];
         const result = ipcRenderer.sendSync(EVENT_DESKTOP_TO_MOBILE, msgs);
         if (result === true){
