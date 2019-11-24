@@ -343,7 +343,7 @@ const updateConnectionStatus = (c: IConnectionStatus) => {
 
 
 ipcMain.on(EVENT_INIT_CONNECTION, (event: Electron.Event ) => {
-    Logger.debug(`ipcMain.on: EVENT_INIT_CONNECTION`, event);
+    Logger.debug(`ipcMain.on: EVENT_INIT_CONNECTION`);
     Logger.debug(`connectionUrl for environmeent: ${environmeent()}`);
     const k = storageKey();
     Storage.get(k, (error, data) => {

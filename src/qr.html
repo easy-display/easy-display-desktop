@@ -17,12 +17,19 @@
 
     <script src="../node_modules/qrcode-generator/qrcode.js"></script>
 
+    <div class="text-center">
+        <button onclick="openLinkInBrowser()" type="submit" class="btn btn-link btn-sm">Get the app</button>
+    </div>
 
-<script>
+    <script>
+
     window.jQuery = window.$ = require('jquery');
-</script>
 
-<script>
+    openLinkInBrowser = () => {
+        const link = "https://apps.apple.com/us/app/easydisplay/id1434962745?ls=1";
+        require("electron").shell.openExternal(link);
+    };
+
     const queryString = require('query-string');
     const parsed = queryString.parse(global.location.search);
     console.log("qr.html: " , global.location.search, parsed);

@@ -28,9 +28,6 @@ h1 {
     grid-auto-flow: column;
 }
 
-.bottom-container{
-
-}
 
 .address-bar-container{
     display: grid;
@@ -48,4 +45,9 @@ h1 {
 
 .button-text{
     margin-left: 10px;
+}
+
+.button-action {
+    min-width: 80px;
+    max-width: 80px;
 }

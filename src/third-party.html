@@ -1,34 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Third Party Licenses</title>
-    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/all.css"/>
-    <link rel="stylesheet" href="../assets/style/style.css"/>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8">
+        <title>Third Party Licenses</title>
+        <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/all.css"/>
+        <link rel="stylesheet" href="../assets/style/style.css"/>
+    </head>
+    <body class="container">
 
-<div id="about">
-    <div>
-        Node.js <script>document.write(process.versions.node)</script>,
-    </div>
-    <div>
-        Chromium <script>document.write(process.versions.chrome)</script>,
-    </div>
-    <div>
-        Electron <script>document.write(process.versions.electron)</script>
-    </div>
-    <div id="app-version">
-        Easy Display: version
-    </div>
-</div>
+        <div id="ml-5">
+            <div>
+                Node.js <script>document.write(process.versions.node)</script>,
+            </div>
+            <div>
+                Chromium <script>document.write(process.versions.chrome)</script>,
+            </div>
+            <div>
+                Electron <script>document.write(process.versions.electron)</script>
+            </div>
+            <div id="app-version">
+                Easy Display: version
+            </div>
+        </div>
 
-<script>window.$ = window.jQuery = require('jquery');</script>
+        <script>window.$ = window.jQuery = require('jquery');</script>
 
-<script>
-    const renderer = require('./renderer.js');
-    $("#app-version").text(`Easy Display: ${renderer.appVersion()}`);
-</script>
-</body>
+        <script>
+            const pjson = require("../package.json");
+            $("#app-version").text(`Easy Display: ${pjson.version}`);
+        </script>
+    </body>
 </html>

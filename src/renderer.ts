@@ -123,10 +123,9 @@ const alertInfoToDiv = ((div: HTMLElement) => {
                 div.innerText = "Ready to use";
                 div.classList.add("alert-success");
                 clearAllInfosClasses();
-                // ipcRenderer.sendSync(EVENT_CLOSE_QR_CODE);
                 break;
             case IConnectionStatus.Failed:
-                div.innerText = "Connected Failed, please check your internet, reconnecting in a few ...";
+                div.innerText = "Connection Failed!, check your internet, reconnecting in a few seconds...";
                 div.classList.add("alert-danger");
                 break;
         }

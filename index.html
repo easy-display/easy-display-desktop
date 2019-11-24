@@ -37,10 +37,10 @@
         </div>
         <div class="">
             <div class="">
-                <a class="btn btn-sm btn-outline-primary fa fa-sync" href="javascript:void(0)" onclick="renderer.reload();"><span class="button-text">Reload</span></a>
+                <button onclick="renderer.reload()" type="submit" class="btn btn-sm btn-outline-primary fas fa-redo-alt button-action"><p class="d-inline font-weight-light"> Reload</p></button>
             </div>
             <div class="">
-                <a class="btn btn-sm btn-outline-primary fab fa-js-square" href="javascript:void(0)" onclick="renderer.openExecJs();"><span class="button-text">Exec JS</span></a>
+                <button onclick="renderer.openExecJs()" type="submit" class="btn btn-sm btn-outline-primary fab fa-js button-action"><p class="d-inline font-weight-light"> Exec JS</p></button>
             </div>
         </div>
 
@@ -70,7 +70,6 @@
     renderer.createNewConnection();
 
     const openUrl = () => {
-      // const url = document.getElementById("url_input").value;
       console.log("index.html openUrl ...");
       const url = $("#url-input").val();
       renderer.openUrl(url);
@@ -87,11 +86,6 @@
     const doThirdPary = () => {
         renderer.thirdPartyLicense();
     };
-    //
-    // $("#url-form").submit(function() {
-    //     openUrl();
-    //     // return false;
-    // });
 
    const detectEnter = () => {
        openUrl();
